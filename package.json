@@ -23,7 +23,7 @@
   "scripts": {
     "dev": "concurrently \"PORT=3001 react-scripts start\" \"cd server && npm run dev\" ",
     "start": "node server/index.js",
-    "build": "react-scripts build",
+    "build": "react-scripts build && cd server && npm install ci",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
