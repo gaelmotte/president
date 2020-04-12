@@ -39,4 +39,7 @@ express()
     let auth = pusher.authenticate(socketId, channel, presenceData);
     res.send(auth);
   })
+  .get("/*", function (req, res) {
+    res.sendFile(path.join(__dirname, "..", "build", "index.html"));
+  })
   .listen(PORT, () => console.log(`Listening on ${PORT}`));

@@ -9,7 +9,6 @@ import * as serviceWorker from "./serviceWorker";
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      {process.env.REACT_APP_NOT_SECRET_CODE}
       <App />
     </Provider>
   </React.StrictMode>,
