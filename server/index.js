@@ -12,9 +12,9 @@ if (
   throw new Error("Must provide pusher info");
 
 let pusher = new Pusher({
-  appId: "980943",
-  key: "2b7bf5a0b42d6551b50f",
-  secret: "00869404cd62c893c494",
+  appId: process.env.PUSHER_APPID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
   cluster: "eu",
   useTLS: true,
 });
