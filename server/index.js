@@ -1,6 +1,7 @@
 const express = require("express");
 const path = require("path");
 const bodyParser = require("body-parser");
+const uuid = require("uuid");
 const Pusher = require("pusher");
 const cors = require("cors");
 
@@ -30,14 +31,33 @@ express()
     let socketId = req.body.socket_id;
     let channel = req.body.channel_name;
     let pseudo = req.body.pseudo;
-    let presenceData = {
-      user_id: "unique_user_id" + new Date().getTime(),
-      user_info: {
-        pseudo: pseudo,
-      },
-    };
-    let auth = pusher.authenticate(socketId, channel, presenceData);
-    res.send(auth);
+
+    pusher.get({ path: `/channels/${channel}/users`, params: {} }, function (
+      error,
+      request,
+      response
+    ) {
+      try {
+        if (response.statusCode === 200) {
+          var result = JSON.parse(response.body);
+          var users = result.users;
+
+          let presenceData = {
+            user_id: uuid.v4(),
+            user_info: {
+              pseudo: pseudo,
+              isLeader: users.length === 0,
+            },
+          };
+          let auth = pusher.authenticate(socketId, channel, presenceData);
+          res.send(auth);
+        } else {
+          console.log("NOT 200 ON PUSHER API GET");
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    });
   })
   .get("/*", function (req, res) {
     res.sendFile(path.join(__dirname, "..", "build", "index.html"));

@@ -35,6 +35,7 @@ export function Room() {
     [dispatch]
   );
 
+  console.log(connectedMembers);
   return (
     <>
       <h1>
@@ -53,7 +54,10 @@ export function Room() {
       {isConnected && (
         <ul>
           {connectedMembers.map((member) => (
-            <li key={member.id}>{member.info.pseudo}</li>
+            <li key={member.id}>
+              {member.info.pseudo}{" "}
+              {member.info.isLeader ? "Leader" : "Not Leader"}
+            </li>
           ))}
         </ul>
       )}

@@ -20,6 +20,7 @@ type Member = {
   id: string;
   info: {
     pseudo: string;
+    isLeader: boolean;
   };
 };
 
@@ -84,6 +85,7 @@ export const connectToRoom = (roomId: string): AppThunk => (
     members.each(function (member: any) {
       // for example:
       dispatch(addConnectedMember(member));
+      console.log(member);
     });
     dispatch(setConnectedRoom(roomId));
   });
