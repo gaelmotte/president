@@ -7,11 +7,20 @@ import { AppThunk, RootState } from "../../app/store";
 interface RoomState {
   roomId: string | null;
   pseudo: string | null;
+  members: Member[];
 }
 
 const initialState: RoomState = {
   roomId: null,
   pseudo: null,
+  members: [],
+};
+
+type Member = {
+  id: string;
+  info: {
+    pseudo: string;
+  };
 };
 
 export const roomSlice = createSlice({
@@ -19,19 +28,28 @@ export const roomSlice = createSlice({
   initialState,
   reducers: {
     setPseudo: (state, action: PayloadAction<string>) => {
-      // Redux Toolkit allows us to write "mutating" logic in reducers. It
-      // doesn't actually mutate the state because it uses the Immer library,
-      // which detects changes to a "draft state" and produces a brand new
-      // immutable state based off those changes
       state.pseudo = action.payload;
     },
     setConnectedRoom: (state, action: PayloadAction<string>) => {
       state.roomId = action.payload;
     },
+    addConnectedMember: (state, action: PayloadAction<Member>) => {
+      state.members.push(action.payload);
+    },
+    removeConnectedMember: (state, action: PayloadAction<Member>) => {
+      state.members.splice(
+        state.members.findIndex((member) => member.id === action.payload.id)
+      );
+    },
   },
 });
 
-export const { setPseudo, setConnectedRoom } = roomSlice.actions;
+export const {
+  setPseudo,
+  setConnectedRoom,
+  addConnectedMember,
+  removeConnectedMember,
+} = roomSlice.actions;
 
 export const connectToRoom = (roomId: string): AppThunk => (
   dispatch,
@@ -63,20 +81,21 @@ export const connectToRoom = (roomId: string): AppThunk => (
   );
 
   channel.bind("pusher:subscription_succeeded", function (members: any) {
-    // for example
-    console.log(members.count);
-
     members.each(function (member: any) {
       // for example:
-      console.log(member.id, member.info);
+      dispatch(addConnectedMember(member));
     });
-
     dispatch(setConnectedRoom(roomId));
   });
 
   channel.bind("pusher:member_added", function (member: any) {
     // for example:
-    console.log(member.id, member.info);
+    dispatch(addConnectedMember(member));
+  });
+
+  channel.bind("pusher:member_removed", function (member: any) {
+    // for example:
+    dispatch(removeConnectedMember(member));
   });
 
   channel.bind("test", (data: any) => console.log(data));
@@ -88,5 +107,7 @@ export const connectToRoom = (roomId: string): AppThunk => (
 export const selectPseudo = (state: RootState) => state.room.pseudo;
 
 export const selectIsConnected = (state: RootState) => !!state.room.roomId;
+
+export const selectConnectedMembers = (state: RootState) => state.room.members;
 
 export default roomSlice.reducer;

@@ -8,10 +8,12 @@ import {
   selectPseudo,
   connectToRoom,
   selectIsConnected,
+  selectConnectedMembers,
 } from "./roomSlice";
 
 export function Room() {
   const pseudo = useSelector(selectPseudo);
+  const connectedMembers = useSelector(selectConnectedMembers);
   const isConnected = useSelector(selectIsConnected);
   const dispatch = useDispatch();
   const {
@@ -47,6 +49,13 @@ export function Room() {
           ></input>
           <input type="submit" />
         </form>
+      )}
+      {isConnected && (
+        <ul>
+          {connectedMembers.map((member) => (
+            <li key={member.id}>{member.info.pseudo}</li>
+          ))}
+        </ul>
       )}
     </>
   );
