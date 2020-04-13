@@ -161,9 +161,6 @@ export const startNewGame = (): AppThunk => (dispatch, getState) => {
 
   const gameId = uuidv4();
   dispatch(setCurrentGame(gameId));
-
-  //send events to players
-  channel.trigger("client-game-starting", { gameId });
 };
 
 // The function below is called a selector and allows us to select a value from
