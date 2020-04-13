@@ -47,6 +47,7 @@ express()
             user_info: {
               pseudo: pseudo,
               isLeader: users.length === 0,
+              joinedAt: new Date().getTime(),
             },
           };
           let auth = pusher.authenticate(socketId, channel, presenceData);

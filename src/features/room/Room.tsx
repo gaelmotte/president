@@ -9,18 +9,23 @@ import {
   connectToRoom,
   selectIsConnected,
   selectConnectedMembers,
+  selectCurrentGameId,
+  selectIsLeader,
+  startNewGame,
 } from "./roomSlice";
 
 export function Room() {
   const pseudo = useSelector(selectPseudo);
   const connectedMembers = useSelector(selectConnectedMembers);
   const isConnected = useSelector(selectIsConnected);
+  const isLeader = useSelector(selectIsLeader);
+  const currentGameId = useSelector(selectCurrentGameId);
   const dispatch = useDispatch();
   const {
     params: { roomId },
   } = useRouteMatch();
 
-  const handleSubmit = useCallback(
+  const handleSubmitConnectionForm = useCallback(
     (e) => {
       e.preventDefault();
       dispatch(connectToRoom(roomId));
@@ -42,7 +47,7 @@ export function Room() {
         Room {roomId} {isConnected ? "Connected as " + pseudo : "Connecting"}
       </h1>
       {!isConnected && (
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmitConnectionForm}>
           <input
             type="text"
             placeholder="pseudo"
@@ -60,6 +65,20 @@ export function Room() {
             </li>
           ))}
         </ul>
+      )}
+      {currentGameId && (
+        <>
+          <h2>Game : {currentGameId}</h2>
+        </>
+      )}
+      {!currentGameId && isLeader && (
+        <>
+          <h2>
+            <button onClick={() => dispatch(startNewGame())}>
+              Start Next Game
+            </button>
+          </h2>
+        </>
       )}
     </>
   );
