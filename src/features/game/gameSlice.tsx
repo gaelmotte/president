@@ -22,12 +22,41 @@ let setChannel: (
 export const gameSlice = createSlice({
   name: "room",
   initialState,
-  reducers: {},
+  reducers: {
+    setStatus: (
+      state,
+      action: PayloadAction<"starting" | "running" | "finished" | undefined>
+    ) => {
+      state.status = action.payload;
+    },
+  },
 });
 
-export const {} = gameSlice.actions;
+export const { setStatus } = gameSlice.actions;
+
+export const initializeGame = (isLeader: boolean): AppThunk => (
+  dispatch,
+  getState
+) => {
+  const channel: PusherTypes.PresenceChannel | null = getChannel();
+  if (!channel) throw new Error("Channel not initialized");
+
+  console.log("setting up game");
+  dispatch(setStatus("starting"));
+
+  // set up event sto watch
+  channel.bind("client-game-cards-dealt", (data: any) => {
+    console.log("Received cards", data);
+  });
+
+  // ask server to deal cards if leader
+  if (isLeader) {
+    console.log("ask server to deal cards");
+  }
+};
 
 export const selectGameId = (state: RootState) => state.game.gameId;
+export const selectStatus = (state: RootState) => state.game.status;
 
 export default (gc: any, sc: any) => {
   getChannel = gc;
