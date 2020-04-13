@@ -37,7 +37,10 @@ type Game = {
   status: "starting" | "running" | "finished";
 };
 
-let channel: PusherTypes.PresenceChannel | null = null;
+let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
+let setChannel: (
+  channel: PusherTypes.PresenceChannel | null
+) => void = () => {};
 
 export const roomSlice = createSlice({
   name: "room",
@@ -115,8 +118,12 @@ export const connectToRoom = (roomId: string): AppThunk => (
   });
 
   //@ts-ignore
-  channel = pusher.subscribe("presence-room-" + roomId);
+  let channel: PusherTypes.PresenceChannel = pusher.subscribe(
+    "presence-room-" + roomId
+  );
   if (!channel) throw new Error("unable to subscribe");
+
+  setChannel(channel);
 
   channel.bind("pusher:subscription_succeeded", function (members: any) {
     if (!channel) throw new Error("subscribe to unexistant channels");
@@ -149,6 +156,7 @@ export const startNewGame = (): AppThunk => (dispatch, getState) => {
 
   const roomId = selectRoomId(getState());
 
+  let channel = getChannel();
   if (!channel || !roomId) {
     throw new Error("Something isn't initialized" + roomId + channel);
   }
@@ -185,4 +193,8 @@ export const selectIsLeader = (state: RootState) =>
 export const selectLastGame = (state: RootState) =>
   state.room.games.slice(-1)[0];
 
-export default roomSlice.reducer;
+export default (gc: any, sc: any) => {
+  getChannel = gc;
+  setChannel = sc;
+  return roomSlice.reducer;
+};
