@@ -9,19 +9,25 @@
     "@testing-library/user-event": "^7.2.1",
     "@types/jest": "^24.9.1",
     "@types/node": "^12.12.35",
+    "@types/pusher-js": "^4.2.2",
     "@types/react": "^16.9.34",
     "@types/react-dom": "^16.9.6",
     "@types/react-redux": "^7.1.7",
+    "@types/react-router-dom": "^5.1.4",
+    "@types/uuid": "^7.0.2",
+    "pusher-js": "^5.1.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-redux": "^7.2.0",
+    "react-router-dom": "^5.1.2",
     "react-scripts": "3.4.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "uuid": "^7.0.3"
   },
   "scripts": {
-    "dev": "react-scripts start",
+    "dev": "concurrently \"PORT=3001 react-scripts start\" \"cd server && npm run dev\" ",
     "start": "node server/index.js",
-    "build": "react-scripts build",
+    "build": "react-scripts build && cd server && npm ci",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -39,5 +45,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "concurrently": "^5.1.0"
   }
 }
