@@ -11,6 +11,7 @@ interface RoomState {
   pusherId: string | null;
   members: Member[];
   games: Game[];
+  channel: PusherTypes.PresenceChannel | null;
 }
 
 const initialState: RoomState = {
@@ -19,6 +20,7 @@ const initialState: RoomState = {
   pusherId: null,
   members: [],
   games: [],
+  channel: null,
 };
 
 type Member = {
@@ -35,6 +37,8 @@ type Game = {
   status: "starting" | "running" | "finished";
 };
 
+let channel: PusherTypes.PresenceChannel | null = null;
+
 export const roomSlice = createSlice({
   name: "room",
   initialState,
@@ -48,6 +52,7 @@ export const roomSlice = createSlice({
     setPusherId: (state, action: PayloadAction<string>) => {
       state.pusherId = action.payload;
     },
+
     addConnectedMember: (state, action: PayloadAction<Member>) => {
       state.members.push(action.payload);
       state.members.sort((a, b) =>
@@ -110,11 +115,11 @@ export const connectToRoom = (roomId: string): AppThunk => (
   });
 
   //@ts-ignore
-  let channel: PusherTypes.PresenceChannel = pusher.subscribe(
-    "presence-room-" + roomId
-  );
+  channel = pusher.subscribe("presence-room-" + roomId);
+  if (!channel) throw new Error("unable to subscribe");
 
   channel.bind("pusher:subscription_succeeded", function (members: any) {
+    if (!channel) throw new Error("subscribe to unexistant channels");
     dispatch(setPusherId(channel.members.me.id));
     members.each(function (member: any) {
       dispatch(addConnectedMember(member));
@@ -130,7 +135,10 @@ export const connectToRoom = (roomId: string): AppThunk => (
     dispatch(removeConnectedMember(member));
   });
 
-  channel.bind("test", (data: any) => console.log(data));
+  channel.bind("client-game-starting", (data: Game) => {
+    dispatch(addNewGame(data));
+    console.log(data);
+  });
 };
 
 export const startNewGame = (): AppThunk => (dispatch, getState) => {
@@ -141,6 +149,10 @@ export const startNewGame = (): AppThunk => (dispatch, getState) => {
 
   const roomId = selectRoomId(getState());
 
+  if (!channel || !roomId) {
+    throw new Error("Something isn't initialized" + roomId + channel);
+  }
+
   //init game
   const game: Game = {
     id: uuidv4(),
@@ -149,6 +161,7 @@ export const startNewGame = (): AppThunk => (dispatch, getState) => {
   dispatch(addNewGame(game));
 
   //send events to players
+  channel.trigger("client-game-starting", game);
 
   //ask server to deal cards
 };
