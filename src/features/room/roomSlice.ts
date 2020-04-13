@@ -21,6 +21,7 @@ type Member = {
   info: {
     pseudo: string;
     isLeader: boolean;
+    joinedAt: number;
   };
 };
 
@@ -36,10 +37,24 @@ export const roomSlice = createSlice({
     },
     addConnectedMember: (state, action: PayloadAction<Member>) => {
       state.members.push(action.payload);
+      state.members.sort((a, b) =>
+        a.info.joinedAt === b.info.joinedAt
+          ? 0
+          : a.info.joinedAt < b.info.joinedAt
+          ? -1
+          : 1
+      );
     },
     removeConnectedMember: (state, action: PayloadAction<Member>) => {
       state.members.splice(
         state.members.findIndex((member) => member.id === action.payload.id)
+      );
+      state.members.sort((a, b) =>
+        a.info.joinedAt === b.info.joinedAt
+          ? 0
+          : a.info.joinedAt < b.info.joinedAt
+          ? -1
+          : 1
       );
     },
   },
@@ -83,20 +98,16 @@ export const connectToRoom = (roomId: string): AppThunk => (
 
   channel.bind("pusher:subscription_succeeded", function (members: any) {
     members.each(function (member: any) {
-      // for example:
       dispatch(addConnectedMember(member));
-      console.log(member);
     });
     dispatch(setConnectedRoom(roomId));
   });
 
   channel.bind("pusher:member_added", function (member: any) {
-    // for example:
     dispatch(addConnectedMember(member));
   });
 
   channel.bind("pusher:member_removed", function (member: any) {
-    // for example:
     dispatch(removeConnectedMember(member));
   });
 
