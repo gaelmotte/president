@@ -9,7 +9,7 @@ import {
   connectToRoom,
   selectIsConnected,
   selectConnectedMembers,
-  selectLastGame,
+  selectCurrentGameId,
   selectIsLeader,
   startNewGame,
 } from "./roomSlice";
@@ -19,7 +19,7 @@ export function Room() {
   const connectedMembers = useSelector(selectConnectedMembers);
   const isConnected = useSelector(selectIsConnected);
   const isLeader = useSelector(selectIsLeader);
-  const lastGame = useSelector(selectLastGame);
+  const currentGameId = useSelector(selectCurrentGameId);
   const dispatch = useDispatch();
   const {
     params: { roomId },
@@ -66,14 +66,12 @@ export function Room() {
           ))}
         </ul>
       )}
-      {lastGame && (
+      {currentGameId && (
         <>
-          <h2>
-            Game : {lastGame.id} - {lastGame.status}
-          </h2>
+          <h2>Game : {currentGameId}</h2>
         </>
       )}
-      {!lastGame && isLeader && (
+      {!currentGameId && isLeader && (
         <>
           <h2>
             <button onClick={() => dispatch(startNewGame())}>

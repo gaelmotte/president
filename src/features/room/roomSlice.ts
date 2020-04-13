@@ -10,8 +10,8 @@ interface RoomState {
   pseudo: string | null;
   pusherId: string | null;
   members: Member[];
-  games: Game[];
-  channel: PusherTypes.PresenceChannel | null;
+  pastGames: PastGame[];
+  currentGame: string | null;
 }
 
 const initialState: RoomState = {
@@ -19,8 +19,8 @@ const initialState: RoomState = {
   pseudo: null,
   pusherId: null,
   members: [],
-  games: [],
-  channel: null,
+  pastGames: [],
+  currentGame: null,
 };
 
 type Member = {
@@ -32,9 +32,8 @@ type Member = {
   };
 };
 
-type Game = {
+type PastGame = {
   id: string;
-  status: "starting" | "running" | "finished";
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -78,8 +77,8 @@ export const roomSlice = createSlice({
           : 1
       );
     },
-    addNewGame: (state, action: PayloadAction<Game>) => {
-      state.games.push(action.payload);
+    setCurrentGame: (state, action: PayloadAction<string>) => {
+      state.currentGame = action.payload;
     },
   },
 });
@@ -90,7 +89,7 @@ export const {
   setPusherId,
   addConnectedMember,
   removeConnectedMember,
-  addNewGame,
+  setCurrentGame,
 } = roomSlice.actions;
 
 export const connectToRoom = (roomId: string): AppThunk => (
@@ -142,9 +141,8 @@ export const connectToRoom = (roomId: string): AppThunk => (
     dispatch(removeConnectedMember(member));
   });
 
-  channel.bind("client-game-starting", (data: Game) => {
-    dispatch(addNewGame(data));
-    console.log(data);
+  channel.bind("client-game-starting", ({ gameId }: { gameId: string }) => {
+    dispatch(setCurrentGame(gameId));
   });
 };
 
@@ -161,17 +159,11 @@ export const startNewGame = (): AppThunk => (dispatch, getState) => {
     throw new Error("Something isn't initialized" + roomId + channel);
   }
 
-  //init game
-  const game: Game = {
-    id: uuidv4(),
-    status: "starting",
-  };
-  dispatch(addNewGame(game));
+  const gameId = uuidv4();
+  dispatch(setCurrentGame(gameId));
 
   //send events to players
-  channel.trigger("client-game-starting", game);
-
-  //ask server to deal cards
+  channel.trigger("client-game-starting", { gameId });
 };
 
 // The function below is called a selector and allows us to select a value from
@@ -191,7 +183,9 @@ export const selectIsLeader = (state: RootState) =>
   );
 
 export const selectLastGame = (state: RootState) =>
-  state.room.games.slice(-1)[0];
+  state.room.pastGames.slice(-1)[0];
+
+export const selectCurrentGameId = (state: RootState) => state.room.currentGame;
 
 export default (gc: any, sc: any) => {
   getChannel = gc;
