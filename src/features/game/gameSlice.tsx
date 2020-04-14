@@ -5,6 +5,8 @@ import { v4 as uuidv4 } from "uuid";
 
 import { AppThunk, RootState } from "../../app/store";
 
+import { dealCards } from "../../services/cardsUtils";
+
 interface GameState {
   gameId: string | null;
   status: "starting" | "running" | "finished" | undefined;
@@ -44,19 +46,24 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
   console.log("setting up game");
   dispatch(setStatus("starting"));
 
-  // set up event sto watch
-  channel.bind("client-game-cards-dealt", (data: any) => {
-    console.log("Received cards", data);
-  });
-
   // ask server to deal cards if leader
   if (isLeader) {
-    console.log("ask server to deal cards");
+    console.log("Deal cards");
+    const memberIds = selectMembersIds(getState());
+    const hands = dealCards(memberIds);
+    channel.trigger("client-game-cards-dealt", hands);
+  } else {
+    // set up event sto watch
+    channel.bind("client-game-cards-dealt", (data: any) => {
+      console.log("Received cards", data);
+    });
   }
 };
 
 export const selectGameId = (state: RootState) => state.game.gameId;
 export const selectStatus = (state: RootState) => state.game.status;
+export const selectMembersIds = (state: RootState) =>
+  state.room.members.map((member) => member.id);
 
 export default (gc: any, sc: any) => {
   getChannel = gc;
