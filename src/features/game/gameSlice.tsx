@@ -10,10 +10,12 @@ import { dealCards } from "../../services/cardsUtils";
 interface GameState {
   gameId: string | null;
   status: "starting" | "running" | "finished" | undefined;
+  playersHands: { [playerId: string]: number[] };
 }
 const initialState: GameState = {
   gameId: null,
   status: undefined,
+  playersHands: {},
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -31,10 +33,16 @@ export const gameSlice = createSlice({
     ) => {
       state.status = action.payload;
     },
+    setPlayersHands: (
+      state,
+      action: PayloadAction<{ [playerId: string]: number[] }>
+    ) => {
+      state.playersHands = action.payload;
+    },
   },
 });
 
-export const { setStatus } = gameSlice.actions;
+export const { setStatus, setPlayersHands } = gameSlice.actions;
 
 export const initializeGame = (isLeader: boolean): AppThunk => (
   dispatch,
@@ -52,11 +60,16 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
     const memberIds = selectMembersIds(getState());
     const hands = dealCards(memberIds);
     channel.trigger("client-game-cards-dealt", hands);
+    dispatch(setPlayersHands(hands));
   } else {
     // set up event sto watch
-    channel.bind("client-game-cards-dealt", (data: any) => {
-      console.log("Received cards", data);
-    });
+    channel.bind(
+      "client-game-cards-dealt",
+      (data: { [playerId: string]: number[] }) => {
+        console.log("Received cards", data);
+        dispatch(setPlayersHands(data));
+      }
+    );
   }
 };
 
@@ -64,6 +77,9 @@ export const selectGameId = (state: RootState) => state.game.gameId;
 export const selectStatus = (state: RootState) => state.game.status;
 export const selectMembersIds = (state: RootState) =>
   state.room.members.map((member) => member.id);
+
+export const selectPlayerHand = (state: RootState) =>
+  state.room.pusherId ? state.game.playersHands[state.room.pusherId] : null;
 
 export default (gc: any, sc: any) => {
   getChannel = gc;
