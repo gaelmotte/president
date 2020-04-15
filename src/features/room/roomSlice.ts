@@ -162,7 +162,6 @@ export const startNewGame = (): AppThunk => (dispatch, getState) => {
   const gameId = uuidv4();
   dispatch(setCurrentGame(gameId));
 
-  //send events to players
   channel.trigger("client-game-starting", { gameId });
 };
 

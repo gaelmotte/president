@@ -3,6 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { useRouteMatch } from "react-router-dom";
 
+import { Game } from "../game/Game";
+
 import {
   setPseudo,
   selectPseudo,
@@ -66,11 +68,7 @@ export function Room() {
           ))}
         </ul>
       )}
-      {currentGameId && (
-        <>
-          <h2>Game : {currentGameId}</h2>
-        </>
-      )}
+      {currentGameId && <Game gameId={currentGameId} isLeader={isLeader} />}
       {!currentGameId && isLeader && (
         <>
           <h2>
