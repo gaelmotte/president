@@ -20,6 +20,12 @@ const figures = [
   "2",
 ];
 
+export const compareValues = (a: number, b: number) => {
+  const valA = a % 13;
+  const valB = b % 13;
+  return valA === valB ? 0 : valA < valB ? -1 : 1;
+};
+
 export default ({ cardIndex }: { cardIndex: number }) => {
   const color = Math.floor(cardIndex / 13);
   const value = cardIndex % 13;
