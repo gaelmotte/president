@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import { initializeGame, selectStatus, selectPlayerHand } from "./gameSlice";
+import { PlayerHand } from "./components/playerHand/playerHand";
 
 export function Game({
   gameId,
@@ -12,7 +13,7 @@ export function Game({
 }) {
   const dispatch = useDispatch();
   const status = useSelector(selectStatus);
-  const hand = useSelector(selectPlayerHand);
+
   useEffect(() => {
     //init the game
     dispatch(initializeGame(isLeader));
@@ -24,7 +25,7 @@ export function Game({
       <h2>
         {gameId} - {status}
       </h2>
-      {hand && hand.map((cardId) => <div>{cardId}</div>)}
+      <PlayerHand />
     </>
   );
 }
