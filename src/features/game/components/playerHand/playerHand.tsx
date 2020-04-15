@@ -2,8 +2,8 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import { selectPlayerHand } from "../../gameSlice";
-import Card, { compareValues } from "../card/Card";
-
+import Card from "../card/Card";
+import { compareValues } from "../../../../services/cardsUtils";
 import StyledHand from "./playerHand.style";
 
 export function PlayerHand() {
