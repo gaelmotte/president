@@ -10,7 +10,7 @@ export default styled.div`
     margin-right: 0px;
   }
 
-  :last-child {
+  :last-of-type {
     overflow: visible;
     margin-right: 0px;
   }
@@ -34,5 +34,8 @@ export default styled.div`
   }
   .♣️ {
     color: black;
+  }
+  .selected {
+    background-color: green;
   }
 `;

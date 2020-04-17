@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import {
@@ -14,6 +14,18 @@ export function PlayerHand() {
   const hand = useSelector(selectPlayerHand);
   const isPlayerTurn = useSelector(selectIsPlayerTurn);
   const dispatch = useDispatch();
+  const [selectedCards, setSelectedCards] = useState<number[]>([]);
+
+  const toggleCard = useCallback(
+    (cardId: number) => {
+      if (selectedCards.includes(cardId)) {
+        setSelectedCards(selectedCards.filter((it) => it !== cardId));
+      } else {
+        setSelectedCards([...selectedCards, cardId]);
+      }
+    },
+    [setSelectedCards, selectedCards]
+  );
 
   return (
     <StyledHand>
@@ -21,7 +33,14 @@ export function PlayerHand() {
         hand
           .slice()
           .sort(compareValues)
-          .map((cardId) => <Card cardIndex={cardId} key={cardId}></Card>)}
+          .map((cardId) => (
+            <Card
+              cardIndex={cardId}
+              key={cardId}
+              selected={selectedCards.includes(cardId)}
+              handleClick={toggleCard}
+            ></Card>
+          ))}
       {isPlayerTurn && (
         <button
           onClick={() => {
