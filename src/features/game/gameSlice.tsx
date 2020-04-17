@@ -7,6 +7,7 @@ import { AppThunk, RootState } from "../../app/store";
 
 import { dealCards } from "../../services/cardsUtils";
 import { stat } from "fs";
+import CardStyle from "./components/card/Card.style";
 
 interface GameState {
   gameId: string | null;
@@ -53,6 +54,14 @@ export const gameSlice = createSlice({
     setCardsToCurrentFold: (state, action: PayloadAction<number[]>) => {
       if (state.currentFold) state.currentFold.push(action.payload);
     },
+    setCardsPlayedByPlayer: (
+      state,
+      action: PayloadAction<{ playerId: string; cards: number[] }>
+    ) => {
+      state.playersHands[action.payload.playerId] = state.playersHands[
+        action.payload.playerId
+      ].filter((card) => !action.payload.cards.includes(card));
+    },
   },
 });
 
@@ -62,6 +71,7 @@ export const {
   setCurrentPlayer,
   setNewFold,
   setCardsToCurrentFold,
+  setCardsPlayedByPlayer,
 } = gameSlice.actions;
 
 export const initializeGame = (isLeader: boolean): AppThunk => (
@@ -106,12 +116,18 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
   }
 
   // set up event sto watch
-  channel.bind("client-game-cards-played", (data: any) => {
-    console.log(data);
-    const nextPLayer = selectNextPLayer(getState());
-    if (nextPLayer) dispatch(setCurrentPlayer(nextPLayer));
-    dispatch(setCardsToCurrentFold(data));
-  });
+  channel.bind(
+    "client-game-cards-played",
+    (data: any, metadata: { user_id: string }) => {
+      console.log(data);
+      const nextPLayer = selectNextPLayer(getState());
+      if (nextPLayer) dispatch(setCurrentPlayer(nextPLayer));
+      dispatch(setCardsToCurrentFold(data));
+      dispatch(
+        setCardsPlayedByPlayer({ playerId: metadata.user_id, cards: data })
+      );
+    }
+  );
 };
 
 export const playCards = (cards: number[]): AppThunk => (
@@ -124,10 +140,14 @@ export const playCards = (cards: number[]): AppThunk => (
   channel.trigger("client-game-cards-played", cards);
   console.log("playing cards");
 
-  const nextPLayer = selectNextPLayer(getState());
-  if (nextPLayer) dispatch(setCurrentPlayer(nextPLayer));
+  const currentPlayer = selectCurrentPlayer(getState());
+  if (!currentPlayer) throw "No current PLayer";
 
   dispatch(setCardsToCurrentFold(cards));
+  dispatch(setCardsPlayedByPlayer({ playerId: currentPlayer, cards }));
+
+  const nextPLayer = selectNextPLayer(getState());
+  if (nextPLayer) dispatch(setCurrentPlayer(nextPLayer));
 };
 
 export const selectGameId = (state: RootState) => state.game.gameId;
