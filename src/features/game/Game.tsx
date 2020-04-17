@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 import { initializeGame, selectStatus, selectPlayerHand } from "./gameSlice";
 import { PlayerHand } from "./components/playerHand/playerHand";
+import Fold from "./components/fold/Fold";
 
 export function Game({
   gameId,
@@ -25,7 +26,10 @@ export function Game({
       <h2>
         {gameId} - {status}
       </h2>
-      <PlayerHand />
+      <div>
+        <Fold></Fold>
+        <PlayerHand />
+      </div>
     </>
   );
 }

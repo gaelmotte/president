@@ -1,8 +1,5 @@
 import React from "react";
-import { useSelector, useDispatch } from "react-redux";
 import classNames from "classnames";
-
-import { selectPlayerHand } from "../../gameSlice";
 
 import { getFigure, getColor } from "../../../../services/cardsUtils";
 import StyledCard from "./Card.style";
