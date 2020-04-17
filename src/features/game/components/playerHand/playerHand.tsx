@@ -44,7 +44,8 @@ export function PlayerHand() {
       {isPlayerTurn && (
         <button
           onClick={() => {
-            dispatch(playCards());
+            dispatch(playCards(selectedCards));
+            setSelectedCards([]);
           }}
         >
           Pass

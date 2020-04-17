@@ -6,18 +6,22 @@ import { v4 as uuidv4 } from "uuid";
 import { AppThunk, RootState } from "../../app/store";
 
 import { dealCards } from "../../services/cardsUtils";
+import { stat } from "fs";
+import CardStyle from "./components/card/Card.style";
 
 interface GameState {
   gameId: string | null;
   status: "starting" | "running" | "finished" | undefined;
   playersHands: { [playerId: string]: number[] };
   currentPlayer: string | null;
+  currentFold: number[][] | null;
 }
 const initialState: GameState = {
   gameId: null,
   status: undefined,
   playersHands: {},
   currentPlayer: null,
+  currentFold: null,
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -44,6 +48,20 @@ export const gameSlice = createSlice({
     setCurrentPlayer: (state, action: PayloadAction<string>) => {
       state.currentPlayer = action.payload;
     },
+    setNewFold: (state) => {
+      state.currentFold = [];
+    },
+    setCardsToCurrentFold: (state, action: PayloadAction<number[]>) => {
+      if (state.currentFold) state.currentFold.push(action.payload);
+    },
+    setCardsPlayedByPlayer: (
+      state,
+      action: PayloadAction<{ playerId: string; cards: number[] }>
+    ) => {
+      state.playersHands[action.payload.playerId] = state.playersHands[
+        action.payload.playerId
+      ].filter((card) => !action.payload.cards.includes(card));
+    },
   },
 });
 
@@ -51,6 +69,9 @@ export const {
   setStatus,
   setPlayersHands,
   setCurrentPlayer,
+  setNewFold,
+  setCardsToCurrentFold,
+  setCardsPlayedByPlayer,
 } = gameSlice.actions;
 
 export const initializeGame = (isLeader: boolean): AppThunk => (
@@ -75,6 +96,7 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
         channel.trigger("client-game-cards-dealt", hands);
         dispatch(setPlayersHands(hands));
         dispatch(setCurrentPlayer(pusherId));
+        dispatch(setNewFold());
       }, 1000);
     }
   } else {
@@ -88,24 +110,41 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
         console.log("Received cards", data);
         dispatch(setPlayersHands(data));
         dispatch(setCurrentPlayer(metadata.user_id));
+        dispatch(setNewFold());
       }
     );
   }
 
   // set up event sto watch
-  channel.bind("client-game-cards-played", (data: any) => {
-    console.log(data);
-    const nextPLayer = selectNextPLayer(getState());
-    if (nextPLayer) dispatch(setCurrentPlayer(nextPLayer));
-  });
+  channel.bind(
+    "client-game-cards-played",
+    (data: any, metadata: { user_id: string }) => {
+      console.log(data);
+      const nextPLayer = selectNextPLayer(getState());
+      if (nextPLayer) dispatch(setCurrentPlayer(nextPLayer));
+      dispatch(setCardsToCurrentFold(data));
+      dispatch(
+        setCardsPlayedByPlayer({ playerId: metadata.user_id, cards: data })
+      );
+    }
+  );
 };
 
-export const playCards = (): AppThunk => (dispatch, getState) => {
+export const playCards = (cards: number[]): AppThunk => (
+  dispatch,
+  getState
+) => {
   const channel: PusherTypes.PresenceChannel | null = getChannel();
   if (!channel) throw new Error("Channel not initialized");
 
-  channel.trigger("client-game-cards-played", "none");
+  channel.trigger("client-game-cards-played", cards);
   console.log("playing cards");
+
+  const currentPlayer = selectCurrentPlayer(getState());
+  if (!currentPlayer) throw "No current PLayer";
+
+  dispatch(setCardsToCurrentFold(cards));
+  dispatch(setCardsPlayedByPlayer({ playerId: currentPlayer, cards }));
 
   const nextPLayer = selectNextPLayer(getState());
   if (nextPLayer) dispatch(setCurrentPlayer(nextPLayer));
@@ -137,6 +176,8 @@ export const selectNextPLayer = (state: RootState) => {
   }
   return null;
 };
+
+export const selectCurrentFold = (state: RootState) => state.game.currentFold;
 
 export default (gc: any, sc: any) => {
   getChannel = gc;
