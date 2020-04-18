@@ -337,6 +337,30 @@ export const selectNextPLayer = (state: RootState) => {
   return null;
 };
 
+export const selectAdversaries = (state: RootState) => {
+  if (!state.game.playerIds || !state.room.pusherId) return undefined;
+  const playerIndex = state.game.playerIds.indexOf(state.room.pusherId);
+  if (playerIndex === -1) throw new Error("NO PLAYER");
+
+  let adversaries: string[] = [];
+
+  for (let i = 1; i < state.game.playerIds.length; i++) {
+    const consideredPlayerIndex =
+      (playerIndex + i) % state.game.playerIds.length;
+    adversaries.push(state.game.playerIds[consideredPlayerIndex]);
+  }
+
+  return adversaries;
+};
+
+export const selectAdversaryHandSize = (playerId: string) => (
+  state: RootState
+) => {
+  const hand = state.game.playersHands[playerId];
+  if (hand) return hand.length;
+  return undefined;
+};
+
 export const selectCurrentFold = (state: RootState) => state.game.currentFold;
 
 export default (gc: any, sc: any) => {
@@ -350,3 +374,6 @@ export const selectIsFoldClosed = (state: RootState) =>
 
 export const selectFinishedPlayers = (state: RootState) =>
   state.game?.finishedPlayers;
+
+export const selectPassedPlayers = (state: RootState) =>
+  state.game?.currentFold?.passedPlayers;

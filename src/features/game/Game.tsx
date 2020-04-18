@@ -7,6 +7,7 @@ import {
   selectStatus,
   selectFinishedPlayers,
   reset,
+  selectAdversaries,
 } from "./gameSlice";
 
 import { setCurrentGame, selectConnectedMembers } from "../room/roomSlice";
@@ -33,6 +34,7 @@ export function Game({
   const missingPlayer = playerIds.some(
     (id) => !connectedMembers.map((member) => member.id).includes(id)
   );
+  const adversaries = useSelector(selectAdversaries);
 
   useEffect(() => {
     //init the game
@@ -76,9 +78,10 @@ export function Game({
             playersNA: ![4, 5, 6].includes(playerIds.length),
           })}
         >
-          {playerIds.map((playerId) => (
-            <Adversary playerId={playerId} key={playerId} />
-          ))}
+          {adversaries &&
+            adversaries.map((playerId) => (
+              <Adversary playerId={playerId} key={playerId} />
+            ))}
         </div>
         <Fold />
       </section>

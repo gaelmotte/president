@@ -23,7 +23,6 @@ import {
 } from "./roomSlice";
 
 export function Room() {
-  const pseudo = useSelector(selectPseudo);
   const connectedMembers = useSelector(selectConnectedMembers);
   const isConnected = useSelector(selectIsConnected);
   const isHost = useSelector(selectIsHost);

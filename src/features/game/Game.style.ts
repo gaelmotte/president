@@ -31,6 +31,30 @@ export default styled.div`
       left: 0;
       right: 0;
       bottom: 0;
+
+      &.playersNA {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+      }
+
+      &.players4 {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+      }
+
+      &.players5 {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+      }
+
+      &.players6 {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-evenly;
+      }
     }
   }
 `;
