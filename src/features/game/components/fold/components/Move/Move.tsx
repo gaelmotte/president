@@ -2,6 +2,9 @@ import React from "react";
 import classNames from "classnames";
 
 import StyledMove from "./Move.style";
+import { useSelector } from "react-redux";
+
+import { selectPlayerPseudo } from "../../../../../room/roomSlice";
 
 export default ({
   children,
@@ -10,12 +13,10 @@ export default ({
   children: JSX.Element[];
   playerId: string;
 }) => {
+  const pseudo = useSelector(selectPlayerPseudo(playerId));
   return (
     <StyledMove>
-      <div>
-        <header>{playerId}</header>
-        <section>{children}</section>
-      </div>
+      <section>{children}</section>
     </StyledMove>
   );
 };
