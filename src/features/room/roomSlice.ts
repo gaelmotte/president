@@ -36,7 +36,8 @@ type Member = {
 
 type PastGame = {
   id: string;
-  playeIds: string[];
+  playerIds: string[];
+  finishOrder: string[];
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -227,5 +228,5 @@ export const selectPlayerPseudo = (playerId: string | undefined) => (
 
 export const selectPreviousGamePlayers = (state: RootState) => {
   if (state.room.pastGames.length === 0) return null;
-  return state.room.pastGames.slice(-1)[0].playeIds;
+  return state.room.pastGames.slice(-1)[0].playerIds;
 };

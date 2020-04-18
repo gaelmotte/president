@@ -265,7 +265,8 @@ export const startNewFold = (cards: number[]): AppThunk => (
 
 export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
   const fold = selectCurrentFold(getState());
-  if (fold) {
+  const currentPlayer = selectCurrentPlayer(getState());
+  if (fold && currentPlayer) {
     console.log("Checking if fold is closed", fold.moves.slice(-1));
     const playerIds = selectPlayerIds(getState());
     if (!playerIds) return false;
@@ -285,6 +286,14 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
     ) {
       dispatch(setPlayersPassed(playerIds));
       dispatch(setFoldClosed());
+      const handsize = selectAdversaryHandSize(
+        fold.moves.slice(-1)[0].playerId
+      )(getState());
+      console.log("Did they finish with a 2 ???", handsize);
+
+      if (handsize !== undefined && handsize === 0) {
+        console.log("FINISHED WITH A 2");
+      }
       dispatch(
         setCurrentPlayer(
           fold.moves.filter((move) => move.cards.length > 0).slice(-1)[0]
