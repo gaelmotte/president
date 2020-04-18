@@ -1,20 +1,23 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import Pusher from "pusher-js";
 import * as PusherTypes from "pusher-js";
-import { v4 as uuidv4 } from "uuid";
 
 import { AppThunk, RootState } from "../../app/store";
 
-import { dealCards } from "../../services/cardsUtils";
-import { stat } from "fs";
-import CardStyle from "./components/card/Card.style";
+import {
+  dealCards,
+  Fold,
+  Move,
+  isAllSameFigure,
+} from "../../services/cardsUtils";
+import FoldStyle from "./components/fold/Fold.style";
 
 interface GameState {
   gameId: string | null;
   status: "starting" | "running" | "finished" | undefined;
   playersHands: { [playerId: string]: number[] };
   currentPlayer: string | null;
-  currentFold: number[][] | null;
+  currentFold: Fold | null;
+  finishedPlayers: string[] | null;
 }
 const initialState: GameState = {
   gameId: null,
@@ -22,6 +25,7 @@ const initialState: GameState = {
   playersHands: {},
   currentPlayer: null,
   currentFold: null,
+  finishedPlayers: null,
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -38,6 +42,9 @@ export const gameSlice = createSlice({
       action: PayloadAction<"starting" | "running" | "finished" | undefined>
     ) => {
       state.status = action.payload;
+      if (action.payload === "starting") {
+        state.finishedPlayers = [];
+      }
     },
     setPlayersHands: (
       state,
@@ -48,19 +55,39 @@ export const gameSlice = createSlice({
     setCurrentPlayer: (state, action: PayloadAction<string>) => {
       state.currentPlayer = action.payload;
     },
-    setNewFold: (state) => {
-      state.currentFold = [];
+    setNewFold: (state, action: PayloadAction<number[]>) => {
+      state.currentFold = {
+        moves: [],
+        passedPlayers: [],
+        cardsPerPlay: action.payload.length,
+        closed: false,
+      };
     },
-    setCardsToCurrentFold: (state, action: PayloadAction<number[]>) => {
-      if (state.currentFold) state.currentFold.push(action.payload);
+    setFoldClosed: (state) => {
+      if (state.currentFold) state.currentFold.closed = true;
     },
-    setCardsPlayedByPlayer: (
-      state,
-      action: PayloadAction<{ playerId: string; cards: number[] }>
-    ) => {
-      state.playersHands[action.payload.playerId] = state.playersHands[
-        action.payload.playerId
-      ].filter((card) => !action.payload.cards.includes(card));
+    setEndFold: (state) => {
+      state.currentFold = null;
+    },
+    setPlayedMove: (state, action: PayloadAction<Move>) => {
+      const {
+        payload: { playerId, cards },
+      } = action;
+      state.playersHands[playerId] = state.playersHands[playerId].filter(
+        (card) => !cards.includes(card)
+      );
+      if (state.playersHands[playerId].length === 0) {
+        state.finishedPlayers?.push(playerId);
+      }
+      if (state.currentFold) {
+        state.currentFold.moves.push(action.payload);
+      }
+    },
+    setPlayerPassed: (state, action: PayloadAction<string>) => {
+      state.currentFold?.passedPlayers.push(action.payload);
+    },
+    setPlayersPassed: (state, action: PayloadAction<string[]>) => {
+      if (state.currentFold) state.currentFold.passedPlayers = action.payload;
     },
   },
 });
@@ -70,8 +97,11 @@ export const {
   setPlayersHands,
   setCurrentPlayer,
   setNewFold,
-  setCardsToCurrentFold,
-  setCardsPlayedByPlayer,
+  setFoldClosed,
+  setEndFold,
+  setPlayedMove,
+  setPlayerPassed,
+  setPlayersPassed,
 } = gameSlice.actions;
 
 export const initializeGame = (isLeader: boolean): AppThunk => (
@@ -96,7 +126,6 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
         channel.trigger("client-game-cards-dealt", hands);
         dispatch(setPlayersHands(hands));
         dispatch(setCurrentPlayer(pusherId));
-        dispatch(setNewFold());
       }, 1000);
     }
   } else {
@@ -110,7 +139,6 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
         console.log("Received cards", data);
         dispatch(setPlayersHands(data));
         dispatch(setCurrentPlayer(metadata.user_id));
-        dispatch(setNewFold());
       }
     );
   }
@@ -119,13 +147,44 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
   channel.bind(
     "client-game-cards-played",
     (data: any, metadata: { user_id: string }) => {
-      console.log(data);
+      dispatch(setPlayedMove({ playerId: metadata.user_id, cards: data }));
+      dispatch(checkClosedFold());
       const nextPLayer = selectNextPLayer(getState());
-      if (nextPLayer) dispatch(setCurrentPlayer(nextPLayer));
-      dispatch(setCardsToCurrentFold(data));
-      dispatch(
-        setCardsPlayedByPlayer({ playerId: metadata.user_id, cards: data })
-      );
+      if (nextPLayer) {
+        dispatch(setCurrentPlayer(nextPLayer));
+      }
+    }
+  );
+
+  channel.bind(
+    "client-game-player-passed",
+    (data: any, metadata: { user_id: string }) => {
+      console.log("player passed", metadata.user_id);
+      dispatch(setPlayerPassed(metadata.user_id));
+      dispatch(checkClosedFold());
+      const nextPLayer = selectNextPLayer(getState());
+      if (nextPLayer) {
+        dispatch(setCurrentPlayer(nextPLayer));
+      }
+    }
+  );
+
+  channel.bind(
+    "client-game-fold-started",
+    (data: number[], metadata: { user_id: string }) => {
+      console.log("fold started", metadata.user_id);
+      dispatch(setNewFold(data));
+
+      const currentPlayer = selectCurrentPlayer(getState());
+      if (!currentPlayer) throw "No current PLayer";
+
+      dispatch(setPlayedMove({ playerId: currentPlayer, cards: data }));
+      dispatch(checkClosedFold());
+
+      const nextPLayer = selectNextPLayer(getState());
+      if (nextPLayer) {
+        dispatch(setCurrentPlayer(nextPLayer));
+      }
     }
   );
 };
@@ -143,11 +202,85 @@ export const playCards = (cards: number[]): AppThunk => (
   const currentPlayer = selectCurrentPlayer(getState());
   if (!currentPlayer) throw "No current PLayer";
 
-  dispatch(setCardsToCurrentFold(cards));
-  dispatch(setCardsPlayedByPlayer({ playerId: currentPlayer, cards }));
+  dispatch(setPlayedMove({ playerId: currentPlayer, cards }));
+  dispatch(checkClosedFold());
 
   const nextPLayer = selectNextPLayer(getState());
-  if (nextPLayer) dispatch(setCurrentPlayer(nextPLayer));
+  if (nextPLayer) {
+    dispatch(setCurrentPlayer(nextPLayer));
+  }
+};
+
+export const pass = (): AppThunk => (dispatch, getState) => {
+  const channel: PusherTypes.PresenceChannel | null = getChannel();
+  if (!channel) throw new Error("Channel not initialized");
+
+  channel.trigger("client-game-player-passed", {});
+
+  const currentPlayer = selectCurrentPlayer(getState());
+  if (!currentPlayer) throw "No current PLayer";
+
+  dispatch(setPlayerPassed(currentPlayer));
+  dispatch(checkClosedFold());
+
+  const nextPLayer = selectNextPLayer(getState());
+  if (nextPLayer) {
+    dispatch(setCurrentPlayer(nextPLayer));
+  }
+};
+
+export const startNewFold = (cards: number[]): AppThunk => (
+  dispatch,
+  getState
+) => {
+  const channel: PusherTypes.PresenceChannel | null = getChannel();
+  if (!channel) throw new Error("Channel not initialized");
+
+  channel.trigger("client-game-fold-started", cards);
+
+  dispatch(setNewFold(cards));
+
+  const currentPlayer = selectCurrentPlayer(getState());
+  if (!currentPlayer) throw "No current PLayer";
+
+  dispatch(setPlayedMove({ playerId: currentPlayer, cards }));
+
+  dispatch(checkClosedFold());
+
+  const nextPLayer = selectNextPLayer(getState());
+  if (nextPLayer) {
+    dispatch(setCurrentPlayer(nextPLayer));
+  }
+};
+
+export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
+  const fold = selectCurrentFold(getState());
+  if (fold) {
+    console.log("Checking if fold is closed", fold.moves.slice(-1));
+    const memberIds = selectMembersIds(getState());
+    if (fold.passedPlayers.length === memberIds.length) {
+      dispatch(setFoldClosed());
+      dispatch(setPlayersPassed(memberIds));
+      dispatch(setCurrentPlayer(fold.moves.slice(-1)[0].playerId));
+    } else if (
+      fold.moves.length !== 0 &&
+      fold.moves.slice(-1)[0].cards[0] % 13 === 12
+    ) {
+      dispatch(setPlayersPassed(memberIds));
+      dispatch(setFoldClosed());
+      dispatch(setCurrentPlayer(fold.moves.slice(-1)[0].playerId));
+    } else if (fold.cardsPerPlay !== 4) {
+      const playedCardsInFold = fold.moves.map((move) => move.cards).flat();
+      if (
+        playedCardsInFold.length >= 4 &&
+        isAllSameFigure(playedCardsInFold.slice(-4))
+      ) {
+        dispatch(setFoldClosed());
+        dispatch(setPlayersPassed(memberIds));
+        dispatch(setCurrentPlayer(fold.moves.slice(-1)[0].playerId));
+      }
+    }
+  }
 };
 
 export const selectGameId = (state: RootState) => state.game.gameId;
@@ -160,6 +293,10 @@ export const selectPlayerHand = (state: RootState) =>
 
 export const selectIsPlayerTurn = (state: RootState) =>
   state.game.currentPlayer === state.room.pusherId;
+export const selectHasPlayerPassed = (state: RootState) =>
+  state.room.pusherId &&
+  state.game.currentFold?.passedPlayers.includes(state.room.pusherId);
+
 export const selectCurrentPlayer = (state: RootState) =>
   state.game.currentPlayer;
 
@@ -169,11 +306,22 @@ export const selectNextPLayer = (state: RootState) => {
   const currentPLayerIndex = state.room.members.findIndex(
     (member) => member.id === state.game.currentPlayer
   );
-  if (currentPLayerIndex !== -1) {
-    return state.room.members[
-      (currentPLayerIndex + 1) % state.room.members.length
-    ].id;
+  if (currentPLayerIndex === -1) throw new Error("NO CURRENT PLAYER");
+
+  for (let i = 0; i < state.room.members.length; i++) {
+    const consideredPlayerIndex =
+      (currentPLayerIndex + 1 + i) % state.room.members.length;
+    const consideredPlayerId = state.room.members[consideredPlayerIndex].id;
+    console.log(currentPLayerIndex, consideredPlayerIndex, consideredPlayerId);
+    if (
+      state.game.playersHands[consideredPlayerId].length > 0 &&
+      !state.game.currentFold?.passedPlayers.includes(consideredPlayerId)
+    ) {
+      // has still cards in hand and has not passed
+      return consideredPlayerId;
+    }
   }
+  // no player available, return null
   return null;
 };
 
@@ -184,3 +332,9 @@ export default (gc: any, sc: any) => {
   setChannel = sc;
   return gameSlice.reducer;
 };
+
+export const selectIsFoldClosed = (state: RootState) =>
+  state.game?.currentFold?.closed;
+
+export const selectFinishedPlayers = (state: RootState) =>
+  state.game?.finishedPlayers;

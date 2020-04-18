@@ -5,16 +5,22 @@ import {
   selectPlayerHand,
   selectIsPlayerTurn,
   playCards,
+  pass,
+  selectHasPlayerPassed,
+  selectCurrentFold,
+  startNewFold,
 } from "../../gameSlice";
 import Card from "../card/Card";
-import { compareValues } from "../../../../services/cardsUtils";
+import { compareValues, isMoveAllowed } from "../../../../services/cardsUtils";
 import StyledHand from "./playerHand.style";
+import { addListener } from "cluster";
 
 export function PlayerHand() {
   const hand = useSelector(selectPlayerHand);
   const isPlayerTurn = useSelector(selectIsPlayerTurn);
   const dispatch = useDispatch();
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
+  const fold = useSelector(selectCurrentFold);
 
   const toggleCard = useCallback(
     (cardId: number) => {
@@ -41,15 +47,46 @@ export function PlayerHand() {
               handleClick={toggleCard}
             ></Card>
           ))}
-      {isPlayerTurn && (
+
+      {isPlayerTurn && !fold && (
         <button
           onClick={() => {
-            dispatch(playCards(selectedCards));
-            setSelectedCards([]);
+            if (isMoveAllowed(null, selectedCards)) {
+              dispatch(startNewFold(selectedCards));
+              setSelectedCards([]);
+            } else {
+              alert("Illegal Move");
+            }
           }}
         >
-          Pass
+          Start New Fold
         </button>
+      )}
+      {isPlayerTurn && fold && !fold.closed && (
+        <>
+          <button
+            onClick={() => {
+              if (isMoveAllowed(fold, selectedCards)) {
+                dispatch(playCards(selectedCards));
+                setSelectedCards([]);
+              } else {
+                alert("Illegal Move");
+              }
+            }}
+          >
+            {selectedCards.length < 2
+              ? `Play ${selectedCards.length} Card`
+              : `Play ${selectedCards.length} Cards`}
+          </button>
+          <button
+            onClick={() => {
+              dispatch(pass());
+              setSelectedCards([]);
+            }}
+          >
+            Pass
+          </button>
+        </>
       )}
     </StyledHand>
   );
