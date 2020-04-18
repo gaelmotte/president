@@ -273,14 +273,24 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
     if (fold.passedPlayers.length === playerIds.length) {
       dispatch(setFoldClosed());
       dispatch(setPlayersPassed(playerIds));
-      dispatch(setCurrentPlayer(fold.moves.slice(-1)[0].playerId));
+      dispatch(
+        setCurrentPlayer(
+          fold.moves.filter((move) => move.cards.length > 0).slice(-1)[0]
+            .playerId
+        )
+      );
     } else if (
       fold.moves.length !== 0 &&
       fold.moves.slice(-1)[0].cards[0] % 13 === 12
     ) {
       dispatch(setPlayersPassed(playerIds));
       dispatch(setFoldClosed());
-      dispatch(setCurrentPlayer(fold.moves.slice(-1)[0].playerId));
+      dispatch(
+        setCurrentPlayer(
+          fold.moves.filter((move) => move.cards.length > 0).slice(-1)[0]
+            .playerId
+        )
+      );
     } else if (fold.cardsPerPlay !== 4) {
       const playedCardsInFold = fold.moves.map((move) => move.cards).flat();
       if (
@@ -289,7 +299,12 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
       ) {
         dispatch(setFoldClosed());
         dispatch(setPlayersPassed(playerIds));
-        dispatch(setCurrentPlayer(fold.moves.slice(-1)[0].playerId));
+        dispatch(
+          setCurrentPlayer(
+            fold.moves.filter((move) => move.cards.length > 0).slice(-1)[0]
+              .playerId
+          )
+        );
       }
     }
   }
