@@ -9,7 +9,8 @@ import {
   Move,
   isAllSameFigure,
 } from "../../services/cardsUtils";
-import FoldStyle from "./components/fold/Fold.style";
+
+import { setPastGame, selectCurrentGameId } from "../room/roomSlice";
 
 interface GameState {
   gameId: string | null;
@@ -19,6 +20,7 @@ interface GameState {
   currentFold: Fold | null;
   finishedPlayers: string[] | null;
   playerIds: string[] | null;
+  disqualifiedPlayers: string[] | null;
 }
 const initialState: GameState = {
   gameId: null,
@@ -28,6 +30,7 @@ const initialState: GameState = {
   currentFold: null,
   finishedPlayers: null,
   playerIds: null,
+  disqualifiedPlayers: null,
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -47,6 +50,7 @@ export const gameSlice = createSlice({
       state.status = action.payload;
       if (action.payload === "starting") {
         state.finishedPlayers = [];
+        state.disqualifiedPlayers = [];
       }
     },
     setPlayerIds: (state, action: PayloadAction<string[]>) => {
@@ -89,6 +93,9 @@ export const gameSlice = createSlice({
         state.currentFold.moves.push(action.payload);
       }
     },
+    setDisqualifiedPlayer: (state, action: PayloadAction<string>) => {
+      state.disqualifiedPlayers?.push(action.payload);
+    },
     setPlayerPassed: (state, action: PayloadAction<string>) => {
       state.currentFold?.passedPlayers.push(action.payload);
     },
@@ -110,6 +117,7 @@ export const {
   setPlayerPassed,
   setPlayersPassed,
   reset,
+  setDisqualifiedPlayer,
 } = gameSlice.actions;
 
 export const initializeGame = (
@@ -159,7 +167,7 @@ export const initializeGame = (
     (data: any, metadata: { user_id: string }) => {
       dispatch(setPlayedMove({ playerId: metadata.user_id, cards: data }));
       dispatch(checkClosedFold());
-      const nextPLayer = selectNextPLayer(getState());
+      const nextPLayer = selectNextPlayer(getState());
       if (nextPLayer) {
         dispatch(setCurrentPlayer(nextPLayer));
       }
@@ -172,7 +180,7 @@ export const initializeGame = (
       console.log("player passed", metadata.user_id);
       dispatch(setPlayerPassed(metadata.user_id));
       dispatch(checkClosedFold());
-      const nextPLayer = selectNextPLayer(getState());
+      const nextPLayer = selectNextPlayer(getState());
       if (nextPLayer) {
         dispatch(setCurrentPlayer(nextPLayer));
       }
@@ -191,7 +199,7 @@ export const initializeGame = (
       dispatch(setPlayedMove({ playerId: currentPlayer, cards: data }));
       dispatch(checkClosedFold());
 
-      const nextPLayer = selectNextPLayer(getState());
+      const nextPLayer = selectNextPlayer(getState());
       if (nextPLayer) {
         dispatch(setCurrentPlayer(nextPLayer));
       }
@@ -215,7 +223,7 @@ export const playCards = (cards: number[]): AppThunk => (
   dispatch(setPlayedMove({ playerId: currentPlayer, cards }));
   dispatch(checkClosedFold());
 
-  const nextPLayer = selectNextPLayer(getState());
+  const nextPLayer = selectNextPlayer(getState());
   if (nextPLayer) {
     dispatch(setCurrentPlayer(nextPLayer));
   }
@@ -233,7 +241,7 @@ export const pass = (): AppThunk => (dispatch, getState) => {
   dispatch(setPlayerPassed(currentPlayer));
   dispatch(checkClosedFold());
 
-  const nextPLayer = selectNextPLayer(getState());
+  const nextPLayer = selectNextPlayer(getState());
   if (nextPLayer) {
     dispatch(setCurrentPlayer(nextPLayer));
   }
@@ -257,21 +265,59 @@ export const startNewFold = (cards: number[]): AppThunk => (
 
   dispatch(checkClosedFold());
 
-  const nextPLayer = selectNextPLayer(getState());
+  const nextPLayer = selectNextPlayer(getState());
   if (nextPLayer) {
     dispatch(setCurrentPlayer(nextPLayer));
   }
 };
 
+export const archiveCurrentGame = (): AppThunk => (dispatch, getState) => {
+  const currentGame = selectCurrentGameId(getState());
+  const playerIds = selectPlayerIds(getState());
+  const finishedPlayers = selectFinishedPlayers(getState());
+  const disqualifiedPlayers = selectDisqualifiedPlauers(getState());
+
+  if (!currentGame || !playerIds || !finishedPlayers || !disqualifiedPlayers)
+    throw new Error("how did we get there ?");
+
+  const lastPlayerNotFinished = playerIds.find(
+    (player) => !finishedPlayers.includes(player)
+  );
+  if (!lastPlayerNotFinished) throw new Error("how did we get there ?");
+
+  const finishedNotDisqualified = finishedPlayers.filter(
+    (player) => !disqualifiedPlayers.includes(player)
+  );
+  const finishOrder = [
+    ...finishedNotDisqualified,
+    lastPlayerNotFinished,
+    ...disqualifiedPlayers.slice().reverse(),
+  ];
+
+  if (playerIds.length !== finishOrder.length)
+    throw new Error("WE FORGOT TO FLAG SOMEONE AS FINISHED");
+
+  dispatch(setPastGame({ id: currentGame, playerIds, finishOrder }));
+};
+
 export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
   const fold = selectCurrentFold(getState());
   const currentPlayer = selectCurrentPlayer(getState());
+  const playerHands = selectAdversaryHandSize;
   if (fold && currentPlayer) {
     console.log("Checking if fold is closed", fold.moves.slice(-1));
     const playerIds = selectPlayerIds(getState());
     if (!playerIds) return false;
 
-    if (fold.passedPlayers.length === playerIds.length) {
+    // Closed if all those that have cards left in their hands have passed.
+    if (
+      !playerIds.some((playerId) => {
+        const handSize = selectAdversaryHandSize(playerId)(getState());
+        return (
+          handSize && handSize > 0 && !fold.passedPlayers.includes(playerId)
+        );
+      })
+    ) {
       dispatch(setFoldClosed());
       dispatch(setPlayersPassed(playerIds));
       dispatch(
@@ -292,7 +338,7 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
       console.log("Did they finish with a 2 ???", handsize);
 
       if (handsize !== undefined && handsize === 0) {
-        console.log("FINISHED WITH A 2");
+        dispatch(setDisqualifiedPlayer(fold.moves.slice(-1)[0].playerId));
       }
       dispatch(
         setCurrentPlayer(
@@ -337,26 +383,52 @@ export const selectCurrentPlayer = (state: RootState) =>
 
 export const selectPusherId = (state: RootState) => state.room.pusherId;
 
-export const selectNextPLayer = (state: RootState) => {
+export const selectNextPlayer = (state: RootState) => {
   if (!state.game.playerIds || !state.game.currentPlayer) return undefined;
   const currentPLayerIndex = state.game.playerIds.indexOf(
     state.game.currentPlayer
   );
   if (currentPLayerIndex === -1) throw new Error("NO CURRENT PLAYER");
 
-  for (let i = 0; i < state.game.playerIds.length; i++) {
-    const consideredPlayerIndex =
-      (currentPLayerIndex + 1 + i) % state.game.playerIds.length;
-    const consideredPlayerId = state.game.playerIds[consideredPlayerIndex];
-    console.log(currentPLayerIndex, consideredPlayerIndex, consideredPlayerId);
-    if (
-      state.game.playersHands[consideredPlayerId].length > 0 &&
-      !state.game.currentFold?.passedPlayers.includes(consideredPlayerId)
-    ) {
-      // has still cards in hand and has not passed
-      return consideredPlayerId;
+  console.log("CURRENT FOLD", state.game.currentFold);
+  if (
+    state.game.currentFold?.closed &&
+    state.game.playersHands[state.game.currentPlayer].length === 0
+  ) {
+    for (let i = 0; i < state.game.playerIds.length; i++) {
+      const consideredPlayerIndex =
+        (currentPLayerIndex + 1 + i) % state.game.playerIds.length;
+      const consideredPlayerId = state.game.playerIds[consideredPlayerIndex];
+      console.log(
+        currentPLayerIndex,
+        consideredPlayerIndex,
+        consideredPlayerId
+      );
+      if (state.game.playersHands[consideredPlayerId].length > 0) {
+        // has still cards in hand
+        return consideredPlayerId;
+      }
+    }
+  } else {
+    for (let i = 0; i < state.game.playerIds.length; i++) {
+      const consideredPlayerIndex =
+        (currentPLayerIndex + 1 + i) % state.game.playerIds.length;
+      const consideredPlayerId = state.game.playerIds[consideredPlayerIndex];
+      console.log(
+        currentPLayerIndex,
+        consideredPlayerIndex,
+        consideredPlayerId
+      );
+      if (
+        state.game.playersHands[consideredPlayerId].length > 0 &&
+        !state.game.currentFold?.passedPlayers.includes(consideredPlayerId)
+      ) {
+        // has still cards in hand and has not passed
+        return consideredPlayerId;
+      }
     }
   }
+
   // no player available, return null
   return null;
 };
@@ -401,3 +473,11 @@ export const selectFinishedPlayers = (state: RootState) =>
 
 export const selectPassedPlayers = (state: RootState) =>
   state.game?.currentFold?.passedPlayers;
+
+export const selectIsGameFinished = (state: RootState) =>
+  state.game.playerIds &&
+  state.game.finishedPlayers &&
+  state.game.finishedPlayers?.length === state.game.playerIds?.length - 1;
+
+export const selectDisqualifiedPlauers = (state: RootState) =>
+  state.game.disqualifiedPlayers;

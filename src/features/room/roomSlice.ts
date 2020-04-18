@@ -91,6 +91,9 @@ export const roomSlice = createSlice({
       state.currentGame = action.payload.gameId;
       state.currentGamePlayerIds = action.payload.playerIds;
     },
+    setPastGame: (state, action: PayloadAction<PastGame>) => {
+      state.pastGames.push(action.payload);
+    },
   },
 });
 
@@ -101,6 +104,7 @@ export const {
   addConnectedMember,
   removeConnectedMember,
   setCurrentGame,
+  setPastGame,
 } = roomSlice.actions;
 
 export const connectToRoom = (roomId: string): AppThunk => (

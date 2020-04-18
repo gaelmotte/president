@@ -8,6 +8,8 @@ import {
   selectFinishedPlayers,
   reset,
   selectAdversaries,
+  selectIsGameFinished,
+  archiveCurrentGame,
 } from "./gameSlice";
 
 import { setCurrentGame, selectConnectedMembers } from "../room/roomSlice";
@@ -35,6 +37,7 @@ export function Game({
     (id) => !connectedMembers.map((member) => member.id).includes(id)
   );
   const adversaries = useSelector(selectAdversaries);
+  const isGameFinished = useSelector(selectIsGameFinished);
 
   useEffect(() => {
     //init the game
@@ -44,13 +47,28 @@ export function Game({
 
   useEffect(() => {
     if (missingPlayer) {
-      setTimeout(() => {
+      const timerId = setTimeout(() => {
         dispatch(reset());
         dispatch(setCurrentGame({ gameId: null, playerIds: null }));
       }, 3000);
+      return () => {
+        clearTimeout(timerId);
+      };
     }
-    return () => {};
   }, [dispatch, missingPlayer]);
+
+  useEffect(() => {
+    if (isGameFinished) {
+      const timerId = setTimeout(() => {
+        dispatch(archiveCurrentGame());
+        dispatch(reset());
+        dispatch(setCurrentGame({ gameId: null, playerIds: null }));
+      }, 3000);
+      return () => {
+        clearTimeout(timerId);
+      };
+    }
+  }, [isGameFinished, dispatch]);
 
   return (
     <StyledGame>
