@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import classNames from "classnames";
 
 import Card from "../card/Card";
+import MoveComp from "./components/Move/Move";
 
 import StyledFold from "./Fold.style";
 import { useSelector, useDispatch } from "react-redux";
@@ -21,6 +22,9 @@ export default () => {
   const dispatch = useDispatch();
 
   const closed = fold?.closed;
+  const moves = fold?.moves;
+
+  const movesSection = useRef(null);
 
   useEffect(() => {
     if (closed) {
@@ -31,16 +35,22 @@ export default () => {
     }
   }, [closed, dispatch]);
 
+  useEffect(() => {
+    if (movesSection !== null && movesSection.current !== null) {
+      //@ts-ignore  WTF
+      movesSection.current.scrollTop = movesSection.current.scrollHeight;
+    }
+    return () => {};
+  }, [movesSection, moves]);
+
   return (
     <StyledFold>
       {fold && (
         <>
-          <h3>This is a fold of {fold.cardsPerPlay} cards.</h3>
-          {closed && <h3>CLOSED</h3>}
-          <ul>
+          {!closed && <h3>CLOSED</h3>}
+          <section className="moves" ref={movesSection}>
             {fold.moves.map((move: Move, i: number) => (
-              <li key={i}>
-                {move.playerId}
+              <MoveComp key={i} playerId={move.playerId}>
                 {move.cards.map((cardIndex, j) => (
                   <Card
                     key={j}
@@ -49,9 +59,9 @@ export default () => {
                     handleClick={() => {}}
                   />
                 ))}
-              </li>
+              </MoveComp>
             ))}
-          </ul>
+          </section>
         </>
       )}
       {!fold && !isPlayerTurn && (

@@ -104,7 +104,7 @@ export const {
   setPlayersPassed,
 } = gameSlice.actions;
 
-export const initializeGame = (isLeader: boolean): AppThunk => (
+export const initializeGame = (isHost: boolean): AppThunk => (
   dispatch,
   getState
 ) => {
@@ -114,8 +114,8 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
   console.log("setting up game");
   dispatch(setStatus("starting"));
 
-  // ask server to deal cards if leader
-  if (isLeader) {
+  // ask server to deal cards if Host
+  if (isHost) {
     console.log("Deal cards");
     const memberIds = selectMembersIds(getState());
     const hands = dealCards(memberIds);

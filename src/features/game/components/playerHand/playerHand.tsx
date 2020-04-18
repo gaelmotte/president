@@ -35,59 +35,62 @@ export function PlayerHand() {
 
   return (
     <StyledHand>
-      {hand &&
-        hand
-          .slice()
-          .sort(compareValues)
-          .map((cardId) => (
-            <Card
-              cardIndex={cardId}
-              key={cardId}
-              selected={selectedCards.includes(cardId)}
-              handleClick={toggleCard}
-            ></Card>
-          ))}
-
-      {isPlayerTurn && !fold && (
-        <button
-          onClick={() => {
-            if (isMoveAllowed(null, selectedCards)) {
-              dispatch(startNewFold(selectedCards));
-              setSelectedCards([]);
-            } else {
-              alert("Illegal Move");
-            }
-          }}
-        >
-          Start New Fold
-        </button>
-      )}
-      {isPlayerTurn && fold && !fold.closed && (
-        <>
+      <section className="actions">
+        {isPlayerTurn && !fold && (
           <button
             onClick={() => {
-              if (isMoveAllowed(fold, selectedCards)) {
-                dispatch(playCards(selectedCards));
+              if (isMoveAllowed(null, selectedCards)) {
+                dispatch(startNewFold(selectedCards));
                 setSelectedCards([]);
               } else {
                 alert("Illegal Move");
               }
             }}
           >
-            {selectedCards.length < 2
-              ? `Play ${selectedCards.length} Card`
-              : `Play ${selectedCards.length} Cards`}
+            Start New Fold
           </button>
-          <button
-            onClick={() => {
-              dispatch(pass());
-              setSelectedCards([]);
-            }}
-          >
-            Pass
-          </button>
-        </>
-      )}
+        )}
+        {isPlayerTurn && fold && !fold.closed && (
+          <>
+            <button
+              onClick={() => {
+                if (isMoveAllowed(fold, selectedCards)) {
+                  dispatch(playCards(selectedCards));
+                  setSelectedCards([]);
+                } else {
+                  alert("Illegal Move");
+                }
+              }}
+            >
+              {selectedCards.length < 2
+                ? `Play ${selectedCards.length} Card`
+                : `Play ${selectedCards.length} Cards`}
+            </button>
+            <button
+              onClick={() => {
+                dispatch(pass());
+                setSelectedCards([]);
+              }}
+            >
+              Pass
+            </button>
+          </>
+        )}
+      </section>
+      <section className="cards">
+        {hand &&
+          hand
+            .slice()
+            .sort(compareValues)
+            .map((cardId) => (
+              <Card
+                cardIndex={cardId}
+                key={cardId}
+                selected={selectedCards.includes(cardId)}
+                handleClick={toggleCard}
+              ></Card>
+            ))}
+      </section>
     </StyledHand>
   );
 }

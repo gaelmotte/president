@@ -9,39 +9,38 @@ import {
 import { PlayerHand } from "./components/playerHand/playerHand";
 import Fold from "./components/fold/Fold";
 
-export function Game({
-  gameId,
-  isLeader,
-}: {
-  gameId: string;
-  isLeader: boolean;
-}) {
+import StyledGame from "./Game.style";
+
+export function Game({ gameId, isHost }: { gameId: string; isHost: boolean }) {
   const dispatch = useDispatch();
   const status = useSelector(selectStatus);
   const finishedPlayers = useSelector(selectFinishedPlayers);
 
   useEffect(() => {
     //init the game
-    dispatch(initializeGame(isLeader));
+    dispatch(initializeGame(isHost));
     return () => {};
-  }, [dispatch, isLeader]);
+  }, [dispatch, isHost]);
 
   return (
-    <>
-      <h2>
-        {gameId} - {status}
-      </h2>
-      {finishedPlayers && finishedPlayers.length > 0 && (
-        <ul>
-          {finishedPlayers.map((player) => (
-            <li key={player}>{player}</li>
-          ))}
-        </ul>
-      )}
-      <div>
-        <Fold></Fold>
-        <PlayerHand />
-      </div>
-    </>
+    <StyledGame>
+      <header>
+        <h2>
+          {gameId} - {status}
+        </h2>
+      </header>
+      <section>
+        {finishedPlayers && finishedPlayers.length > 0 && (
+          <ul>
+            {finishedPlayers.map((player) => (
+              <li key={player}>{player}</li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <Fold />
+      <PlayerHand />
+    </StyledGame>
   );
 }
