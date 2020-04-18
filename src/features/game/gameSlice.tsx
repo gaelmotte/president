@@ -17,6 +17,7 @@ interface GameState {
   playersHands: { [playerId: string]: number[] };
   currentPlayer: string | null;
   currentFold: Fold | null;
+  finishedPlayers: string[] | null;
 }
 const initialState: GameState = {
   gameId: null,
@@ -24,6 +25,7 @@ const initialState: GameState = {
   playersHands: {},
   currentPlayer: null,
   currentFold: null,
+  finishedPlayers: null,
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -40,6 +42,9 @@ export const gameSlice = createSlice({
       action: PayloadAction<"starting" | "running" | "finished" | undefined>
     ) => {
       state.status = action.payload;
+      if (action.payload === "starting") {
+        state.finishedPlayers = [];
+      }
     },
     setPlayersHands: (
       state,
@@ -51,7 +56,6 @@ export const gameSlice = createSlice({
       state.currentPlayer = action.payload;
     },
     setNewFold: (state, action: PayloadAction<number[]>) => {
-      // TODO determine how many cards should be played in this fold
       state.currentFold = {
         moves: [],
         passedPlayers: [],
@@ -72,6 +76,9 @@ export const gameSlice = createSlice({
       state.playersHands[playerId] = state.playersHands[playerId].filter(
         (card) => !cards.includes(card)
       );
+      if (state.playersHands[playerId].length === 0) {
+        state.finishedPlayers?.push(playerId);
+      }
       if (state.currentFold) {
         state.currentFold.moves.push(action.payload);
       }
@@ -172,6 +179,7 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
       if (!currentPlayer) throw "No current PLayer";
 
       dispatch(setPlayedMove({ playerId: currentPlayer, cards: data }));
+      dispatch(checkClosedFold());
 
       const nextPLayer = selectNextPLayer(getState());
       if (nextPLayer) {
@@ -236,6 +244,8 @@ export const startNewFold = (cards: number[]): AppThunk => (
   if (!currentPlayer) throw "No current PLayer";
 
   dispatch(setPlayedMove({ playerId: currentPlayer, cards }));
+
+  dispatch(checkClosedFold());
 
   const nextPLayer = selectNextPLayer(getState());
   if (nextPLayer) {
@@ -325,3 +335,6 @@ export default (gc: any, sc: any) => {
 
 export const selectIsFoldClosed = (state: RootState) =>
   state.game?.currentFold?.closed;
+
+export const selectFinishedPlayers = (state: RootState) =>
+  state.game?.finishedPlayers;

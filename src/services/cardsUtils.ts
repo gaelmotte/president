@@ -52,7 +52,7 @@ export const isAllSameFigure = (cards: number[]) =>
   new Set(cards.map((card) => getFigure(card))).size <= 1;
 
 export const isMoveAllowed = (fold: Fold | null, cards: number[]) => {
-  const allSameFigure = new Set(cards.map((card) => getFigure(card))).size <= 1;
+  const allSameFigure = isAllSameFigure(cards);
 
   if (!fold) {
     // validating only that the cards are in right numbers and have same values
