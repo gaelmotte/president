@@ -5,6 +5,8 @@ import { useRouteMatch } from "react-router-dom";
 
 import { Game } from "../game/Game";
 
+import StyledRoom from "./Room.style";
+
 import {
   setPseudo,
   selectPseudo,
@@ -44,7 +46,7 @@ export function Room() {
 
   console.log(connectedMembers);
   return (
-    <>
+    <StyledRoom>
       <h1>
         Room {roomId} {isConnected ? "Connected as " + pseudo : "Connecting"}
       </h1>
@@ -78,6 +80,6 @@ export function Room() {
           </h2>
         </>
       )}
-    </>
+    </StyledRoom>
   );
 }

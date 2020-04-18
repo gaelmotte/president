@@ -9,6 +9,8 @@ import {
 import { PlayerHand } from "./components/playerHand/playerHand";
 import Fold from "./components/fold/Fold";
 
+import StyledGame from "./Game.style";
+
 export function Game({
   gameId,
   isLeader,
@@ -27,21 +29,24 @@ export function Game({
   }, [dispatch, isLeader]);
 
   return (
-    <>
-      <h2>
-        {gameId} - {status}
-      </h2>
-      {finishedPlayers && finishedPlayers.length > 0 && (
-        <ul>
-          {finishedPlayers.map((player) => (
-            <li key={player}>{player}</li>
-          ))}
-        </ul>
-      )}
-      <div>
-        <Fold></Fold>
-        <PlayerHand />
-      </div>
-    </>
+    <StyledGame>
+      <header>
+        <h2>
+          {gameId} - {status}
+        </h2>
+      </header>
+      <section>
+        {finishedPlayers && finishedPlayers.length > 0 && (
+          <ul>
+            {finishedPlayers.map((player) => (
+              <li key={player}>{player}</li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <Fold />
+      <PlayerHand />
+    </StyledGame>
   );
 }
