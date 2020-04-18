@@ -1,9 +1,8 @@
 import styled from "styled-components";
 
 export default styled.div`
-  flex: 1;
-  flex-shrink: 1;
-  min-height: 0;
+  height: 100%;
+  width: 100%;
   display: flex;
   flex-direction: column;
 

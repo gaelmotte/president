@@ -17,4 +17,20 @@ export default styled.div`
     padding: 5px;
     font-size: 6em;
   }
+
+  .gameTable {
+    flex: 1;
+    flex-shrink: 1;
+    min-height: 0;
+    padding: 100px 70px 0px 70px;
+    position: relative;
+
+    .adversaries {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+  }
 `;

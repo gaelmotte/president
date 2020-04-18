@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
+import classNames from "classnames";
 
 import {
   initializeGame,
@@ -14,6 +15,7 @@ import { PlayerHand } from "./components/playerHand/playerHand";
 import Fold from "./components/fold/Fold";
 
 import StyledGame from "./Game.style";
+import Adversary from "./components/adversary/Adversary";
 
 export function Game({
   gameId,
@@ -65,8 +67,21 @@ export function Game({
           </ul>
         )}
       </section>
-
-      <Fold />
+      <section className="gameTable">
+        <div
+          className={classNames("adversaries", {
+            players4: playerIds.length === 4,
+            players5: playerIds.length === 5,
+            players6: playerIds.length === 6,
+            playersNA: ![4, 5, 6].includes(playerIds.length),
+          })}
+        >
+          {playerIds.map((playerId) => (
+            <Adversary playerId={playerId} key={playerId} />
+          ))}
+        </div>
+        <Fold />
+      </section>
       <PlayerHand />
     </StyledGame>
   );
