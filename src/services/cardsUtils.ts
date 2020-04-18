@@ -88,4 +88,5 @@ export type Fold = {
   cards: number[][];
   cardsPerPlay: number;
   passedPlayers: string[];
+  closed: boolean;
 };

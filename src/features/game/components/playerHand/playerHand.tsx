@@ -63,7 +63,7 @@ export function PlayerHand() {
           Start New Fold
         </button>
       )}
-      {isPlayerTurn && fold && (
+      {isPlayerTurn && fold && !fold.closed && (
         <>
           <button
             onClick={() => {

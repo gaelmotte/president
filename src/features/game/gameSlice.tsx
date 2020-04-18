@@ -4,6 +4,7 @@ import * as PusherTypes from "pusher-js";
 import { AppThunk, RootState } from "../../app/store";
 
 import { dealCards, Fold } from "../../services/cardsUtils";
+import FoldStyle from "./components/fold/Fold.style";
 
 interface GameState {
   gameId: string | null;
@@ -50,24 +51,35 @@ export const gameSlice = createSlice({
         cards: [],
         passedPlayers: [],
         cardsPerPlay: action.payload.length,
+        closed: false,
       };
+    },
+    setFoldClosed: (state) => {
+      if (state.currentFold) state.currentFold.closed = true;
     },
     setEndFold: (state) => {
       state.currentFold = null;
     },
     setCardsToCurrentFold: (state, action: PayloadAction<number[]>) => {
-      if (state.currentFold) state.currentFold.cards.push(action.payload);
+      if (state.currentFold) {
+        state.currentFold.cards.push(action.payload);
+      }
     },
     setCardsPlayedByPlayer: (
       state,
-      action: PayloadAction<{ playerId: string; cards: number[] }>
+      {
+        payload: { playerId, cards },
+      }: PayloadAction<{ playerId: string; cards: number[] }>
     ) => {
-      state.playersHands[action.payload.playerId] = state.playersHands[
-        action.payload.playerId
-      ].filter((card) => !action.payload.cards.includes(card));
+      state.playersHands[playerId] = state.playersHands[playerId].filter(
+        (card) => !cards.includes(card)
+      );
     },
     setPlayerPassed: (state, action: PayloadAction<string>) => {
       state.currentFold?.passedPlayers.push(action.payload);
+    },
+    setPlayersPassed: (state, action: PayloadAction<string[]>) => {
+      if (state.currentFold) state.currentFold.passedPlayers = action.payload;
     },
   },
 });
@@ -77,10 +89,12 @@ export const {
   setPlayersHands,
   setCurrentPlayer,
   setNewFold,
+  setFoldClosed,
   setEndFold,
   setCardsToCurrentFold,
   setCardsPlayedByPlayer,
   setPlayerPassed,
+  setPlayersPassed,
 } = gameSlice.actions;
 
 export const initializeGame = (isLeader: boolean): AppThunk => (
@@ -126,15 +140,14 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
   channel.bind(
     "client-game-cards-played",
     (data: any, metadata: { user_id: string }) => {
-      const nextPLayer = selectNextPLayer(getState());
       dispatch(setCardsToCurrentFold(data));
       dispatch(
         setCardsPlayedByPlayer({ playerId: metadata.user_id, cards: data })
       );
+      dispatch(checkClosedFold());
+      const nextPLayer = selectNextPLayer(getState());
       if (nextPLayer) {
         dispatch(setCurrentPlayer(nextPLayer));
-      } else {
-        setTimeout(() => dispatch(setEndFold()), 3000);
       }
     }
   );
@@ -144,11 +157,10 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
     (data: any, metadata: { user_id: string }) => {
       console.log("player passed", metadata.user_id);
       dispatch(setPlayerPassed(metadata.user_id));
+      dispatch(checkClosedFold());
       const nextPLayer = selectNextPLayer(getState());
       if (nextPLayer) {
         dispatch(setCurrentPlayer(nextPLayer));
-      } else {
-        setTimeout(() => dispatch(setEndFold()), 3000);
       }
     }
   );
@@ -170,8 +182,6 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
       const nextPLayer = selectNextPLayer(getState());
       if (nextPLayer) {
         dispatch(setCurrentPlayer(nextPLayer));
-      } else {
-        setTimeout(() => dispatch(setEndFold()), 3000);
       }
     }
   );
@@ -184,8 +194,6 @@ export const playCards = (cards: number[]): AppThunk => (
   const channel: PusherTypes.PresenceChannel | null = getChannel();
   if (!channel) throw new Error("Channel not initialized");
 
-  // TODO Validate input cards makes sense
-
   channel.trigger("client-game-cards-played", cards);
   console.log("playing cards");
 
@@ -194,12 +202,11 @@ export const playCards = (cards: number[]): AppThunk => (
 
   dispatch(setCardsToCurrentFold(cards));
   dispatch(setCardsPlayedByPlayer({ playerId: currentPlayer, cards }));
+  dispatch(checkClosedFold());
 
   const nextPLayer = selectNextPLayer(getState());
   if (nextPLayer) {
     dispatch(setCurrentPlayer(nextPLayer));
-  } else {
-    setTimeout(() => dispatch(setEndFold()), 3000);
   }
 };
 
@@ -213,12 +220,11 @@ export const pass = (): AppThunk => (dispatch, getState) => {
   if (!currentPlayer) throw "No current PLayer";
 
   dispatch(setPlayerPassed(currentPlayer));
+  dispatch(checkClosedFold());
 
   const nextPLayer = selectNextPLayer(getState());
   if (nextPLayer) {
     dispatch(setCurrentPlayer(nextPLayer));
-  } else {
-    setTimeout(() => dispatch(setEndFold()), 3000);
   }
 };
 
@@ -228,8 +234,6 @@ export const startNewFold = (cards: number[]): AppThunk => (
 ) => {
   const channel: PusherTypes.PresenceChannel | null = getChannel();
   if (!channel) throw new Error("Channel not initialized");
-
-  // TODO Validate input cards makes sense
 
   channel.trigger("client-game-fold-started", cards);
 
@@ -244,9 +248,25 @@ export const startNewFold = (cards: number[]): AppThunk => (
   const nextPLayer = selectNextPLayer(getState());
   if (nextPLayer) {
     dispatch(setCurrentPlayer(nextPLayer));
-  } else {
-    setTimeout(() => dispatch(setEndFold()), 3000);
   }
+};
+
+export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
+  const fold = selectCurrentFold(getState());
+  if (fold) {
+    console.log("Checking if fold is closed", fold.cards.slice(-1));
+    const memberIds = selectMembersIds(getState());
+    if (fold.passedPlayers.length === memberIds.length) {
+      dispatch(setFoldClosed());
+      dispatch(setPlayersPassed(memberIds));
+    } else if (
+      fold.cards.length !== 0 &&
+      fold.cards.slice(-1)[0][0] % 13 === 12
+    ) {
+      dispatch(setPlayersPassed(memberIds));
+      dispatch(setFoldClosed());
+    }
+  } // TODO else 4 cards of same type in a row
 };
 
 export const selectGameId = (state: RootState) => state.game.gameId;
@@ -298,3 +318,6 @@ export default (gc: any, sc: any) => {
   setChannel = sc;
   return gameSlice.reducer;
 };
+
+export const selectIsFoldClosed = (state: RootState) =>
+  state.game?.currentFold?.closed;
