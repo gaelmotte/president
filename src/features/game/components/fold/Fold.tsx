@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import classNames from "classnames";
 
 import Card from "../card/Card";
+import MoveComp from "./components/Move/Move";
 
 import StyledFold from "./Fold.style";
 import { useSelector, useDispatch } from "react-redux";
@@ -35,12 +36,14 @@ export default () => {
     <StyledFold>
       {fold && (
         <>
-          <h3>This is a fold of {fold.cardsPerPlay} cards.</h3>
-          {closed && <h3>CLOSED</h3>}
-          <ul>
+          <header>
+            {" "}
+            <h3>This is a fold of {fold.cardsPerPlay} cards.</h3>
+            {closed && <h3>CLOSED</h3>}
+          </header>
+          <section className="moves">
             {fold.moves.map((move: Move, i: number) => (
-              <li key={i}>
-                {move.playerId}
+              <MoveComp key={i} playerId={move.playerId}>
                 {move.cards.map((cardIndex, j) => (
                   <Card
                     key={j}
@@ -49,9 +52,9 @@ export default () => {
                     handleClick={() => {}}
                   />
                 ))}
-              </li>
+              </MoveComp>
             ))}
-          </ul>
+          </section>
         </>
       )}
       {!fold && !isPlayerTurn && (
