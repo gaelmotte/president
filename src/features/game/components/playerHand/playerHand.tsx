@@ -6,7 +6,7 @@ import {
   selectIsPlayerTurn,
   playCards,
   pass,
-  selectHasPlayerPassed,
+  selectIsSameOrNothingPlay,
   selectCurrentFold,
   startNewFold,
   selectPusherId,
@@ -24,6 +24,7 @@ export function PlayerHand() {
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const fold = useSelector(selectCurrentFold);
   const playerId = useSelector(selectPusherId);
+  const isSameOrNothingPlay = useSelector(selectIsSameOrNothingPlay);
 
   const toggleCard = useCallback(
     (cardId: number) => {
@@ -72,14 +73,16 @@ export function PlayerHand() {
                 ? `Play ${selectedCards.length} Card`
                 : `Play ${selectedCards.length} Cards`}
             </button>
-            <button
-              onClick={() => {
-                dispatch(pass());
-                setSelectedCards([]);
-              }}
-            >
-              Pass
-            </button>
+            {!isSameOrNothingPlay && (
+              <button
+                onClick={() => {
+                  dispatch(pass());
+                  setSelectedCards([]);
+                }}
+              >
+                Pass
+              </button>
+            )}
           </>
         )}
       </div>

@@ -8,6 +8,7 @@ import {
   Fold,
   Move,
   isAllSameFigure,
+  getFigure,
 } from "../../services/cardsUtils";
 
 import { setPastGame, selectCurrentGameId } from "../room/roomSlice";
@@ -481,3 +482,18 @@ export const selectIsGameFinished = (state: RootState) =>
 
 export const selectDisqualifiedPlauers = (state: RootState) =>
   state.game.disqualifiedPlayers;
+
+export const selectIsSameOrNothingPlay = (state: RootState) => {
+  console.log("Recomputing is SAme or Nothing", state.game.currentFold);
+  return (
+    state.game.currentFold &&
+    state.game.currentFold.moves.length >= 2 &&
+    new Set(
+      state.game.currentFold.moves
+        .filter((move) => move.cards.length !== 0)
+        .slice(-2)
+        .map((move) => getFigure(move.cards[0]))
+    ).size === 1 &&
+    state.game.currentFold.moves.slice(-1)[0].cards.length !== 0
+  );
+};
