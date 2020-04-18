@@ -12,13 +12,10 @@ import {
   selectMembersIds,
 } from "../../gameSlice";
 
+import { Move, Fold } from "../../../../services/cardsUtils";
+
 export default () => {
-  const fold: {
-    cards: number[][];
-    passedPlayers: string[];
-    cardsPerPlay: number;
-    closed: boolean;
-  } | null = useSelector(selectCurrentFold);
+  const fold: Fold | null = useSelector(selectCurrentFold);
   const isPlayerTurn = useSelector(selectIsPlayerTurn);
   const members = useSelector(selectMembersIds);
   const dispatch = useDispatch();
@@ -41,9 +38,10 @@ export default () => {
           <h3>This is a fold of {fold.cardsPerPlay} cards.</h3>
           {closed && <h3>CLOSED</h3>}
           <ul>
-            {fold.cards.map((cardsTuple: number[], i: number) => (
+            {fold.moves.map((move: Move, i: number) => (
               <li key={i}>
-                {cardsTuple.map((cardIndex, j) => (
+                {move.playerId}
+                {move.cards.map((cardIndex, j) => (
                   <Card
                     key={j}
                     cardIndex={cardIndex}

@@ -63,29 +63,34 @@ export const isMoveAllowed = (fold: Fold | null, cards: number[]) => {
     )
       return false;
 
-    console.log(fold.cards, fold.cards.slice(-2));
+    console.log(fold.moves, fold.moves.slice(-2));
     if (
-      fold.cards.length >= 2 &&
-      new Set(fold.cards.slice(-2).map((cards) => getFigure(cards[0]))).size ===
-        1
+      fold.moves.length >= 2 &&
+      new Set(fold.moves.slice(-2).map((move) => getFigure(move.cards[0])))
+        .size === 1
     ) {
       return (
         cards.length === 0 ||
         (cards.length === fold.cardsPerPlay &&
-          getFigure(cards[0]) === getFigure(fold.cards.slice(-1)[0][0]))
+          getFigure(cards[0]) === getFigure(fold.moves.slice(-1)[0].cards[0]))
       );
     }
 
     return (
       cards.length === fold.cardsPerPlay &&
-      (fold.cards.slice(-1)[0].length === 0 ||
-        cards[0] % 13 >= fold.cards.slice(-1)[0][0] % 13)
+      (fold.moves.slice(-1)[0].cards.length === 0 ||
+        cards[0] % 13 >= fold.moves.slice(-1)[0].cards[0] % 13)
     );
   }
 };
 
+export type Move = {
+  playerId: string;
+  cards: number[];
+};
+
 export type Fold = {
-  cards: number[][];
+  moves: Move[];
   cardsPerPlay: number;
   passedPlayers: string[];
   closed: boolean;

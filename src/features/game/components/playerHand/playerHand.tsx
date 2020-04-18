@@ -18,7 +18,6 @@ import { addListener } from "cluster";
 export function PlayerHand() {
   const hand = useSelector(selectPlayerHand);
   const isPlayerTurn = useSelector(selectIsPlayerTurn);
-  const hasPlayerPassed = useSelector(selectHasPlayerPassed);
   const dispatch = useDispatch();
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const fold = useSelector(selectCurrentFold);

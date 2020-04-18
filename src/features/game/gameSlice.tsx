@@ -3,7 +3,7 @@ import * as PusherTypes from "pusher-js";
 
 import { AppThunk, RootState } from "../../app/store";
 
-import { dealCards, Fold } from "../../services/cardsUtils";
+import { dealCards, Fold, Move } from "../../services/cardsUtils";
 import FoldStyle from "./components/fold/Fold.style";
 
 interface GameState {
@@ -48,7 +48,7 @@ export const gameSlice = createSlice({
     setNewFold: (state, action: PayloadAction<number[]>) => {
       // TODO determine how many cards should be played in this fold
       state.currentFold = {
-        cards: [],
+        moves: [],
         passedPlayers: [],
         cardsPerPlay: action.payload.length,
         closed: false,
@@ -60,20 +60,16 @@ export const gameSlice = createSlice({
     setEndFold: (state) => {
       state.currentFold = null;
     },
-    setCardsToCurrentFold: (state, action: PayloadAction<number[]>) => {
-      if (state.currentFold) {
-        state.currentFold.cards.push(action.payload);
-      }
-    },
-    setCardsPlayedByPlayer: (
-      state,
-      {
+    setPlayedMove: (state, action: PayloadAction<Move>) => {
+      const {
         payload: { playerId, cards },
-      }: PayloadAction<{ playerId: string; cards: number[] }>
-    ) => {
+      } = action;
       state.playersHands[playerId] = state.playersHands[playerId].filter(
         (card) => !cards.includes(card)
       );
+      if (state.currentFold) {
+        state.currentFold.moves.push(action.payload);
+      }
     },
     setPlayerPassed: (state, action: PayloadAction<string>) => {
       state.currentFold?.passedPlayers.push(action.payload);
@@ -91,8 +87,7 @@ export const {
   setNewFold,
   setFoldClosed,
   setEndFold,
-  setCardsToCurrentFold,
-  setCardsPlayedByPlayer,
+  setPlayedMove,
   setPlayerPassed,
   setPlayersPassed,
 } = gameSlice.actions;
@@ -140,10 +135,7 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
   channel.bind(
     "client-game-cards-played",
     (data: any, metadata: { user_id: string }) => {
-      dispatch(setCardsToCurrentFold(data));
-      dispatch(
-        setCardsPlayedByPlayer({ playerId: metadata.user_id, cards: data })
-      );
+      dispatch(setPlayedMove({ playerId: metadata.user_id, cards: data }));
       dispatch(checkClosedFold());
       const nextPLayer = selectNextPLayer(getState());
       if (nextPLayer) {
@@ -174,10 +166,7 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
       const currentPlayer = selectCurrentPlayer(getState());
       if (!currentPlayer) throw "No current PLayer";
 
-      dispatch(setCardsToCurrentFold(data));
-      dispatch(
-        setCardsPlayedByPlayer({ playerId: currentPlayer, cards: data })
-      );
+      dispatch(setPlayedMove({ playerId: currentPlayer, cards: data }));
 
       const nextPLayer = selectNextPLayer(getState());
       if (nextPLayer) {
@@ -200,8 +189,7 @@ export const playCards = (cards: number[]): AppThunk => (
   const currentPlayer = selectCurrentPlayer(getState());
   if (!currentPlayer) throw "No current PLayer";
 
-  dispatch(setCardsToCurrentFold(cards));
-  dispatch(setCardsPlayedByPlayer({ playerId: currentPlayer, cards }));
+  dispatch(setPlayedMove({ playerId: currentPlayer, cards }));
   dispatch(checkClosedFold());
 
   const nextPLayer = selectNextPLayer(getState());
@@ -242,8 +230,7 @@ export const startNewFold = (cards: number[]): AppThunk => (
   const currentPlayer = selectCurrentPlayer(getState());
   if (!currentPlayer) throw "No current PLayer";
 
-  dispatch(setCardsToCurrentFold(cards));
-  dispatch(setCardsPlayedByPlayer({ playerId: currentPlayer, cards }));
+  dispatch(setPlayedMove({ playerId: currentPlayer, cards }));
 
   const nextPLayer = selectNextPLayer(getState());
   if (nextPLayer) {
@@ -254,14 +241,14 @@ export const startNewFold = (cards: number[]): AppThunk => (
 export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
   const fold = selectCurrentFold(getState());
   if (fold) {
-    console.log("Checking if fold is closed", fold.cards.slice(-1));
+    console.log("Checking if fold is closed", fold.moves.slice(-1));
     const memberIds = selectMembersIds(getState());
     if (fold.passedPlayers.length === memberIds.length) {
       dispatch(setFoldClosed());
       dispatch(setPlayersPassed(memberIds));
     } else if (
-      fold.cards.length !== 0 &&
-      fold.cards.slice(-1)[0][0] % 13 === 12
+      fold.moves.length !== 0 &&
+      fold.moves.slice(-1)[0].cards[0] % 13 === 12
     ) {
       dispatch(setPlayersPassed(memberIds));
       dispatch(setFoldClosed());
