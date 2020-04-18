@@ -90,6 +90,22 @@ export function Room() {
               )
             }
           >
+            Start First Game
+          </button>
+        </>
+      )}
+
+      {!currentGameId && isHost && previousGamePlayers && (
+        <>
+          <h2>Start a game</h2>
+          Starting a game for all the connected members for that first game.
+          <button
+            onClick={() =>
+              dispatch(
+                startNewGame(connectedMembers.map((member) => member.id))
+              )
+            }
+          >
             Start Next Game
           </button>
         </>
