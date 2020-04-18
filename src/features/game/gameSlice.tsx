@@ -3,7 +3,12 @@ import * as PusherTypes from "pusher-js";
 
 import { AppThunk, RootState } from "../../app/store";
 
-import { dealCards, Fold, Move } from "../../services/cardsUtils";
+import {
+  dealCards,
+  Fold,
+  Move,
+  isAllSameFigure,
+} from "../../services/cardsUtils";
 import FoldStyle from "./components/fold/Fold.style";
 
 interface GameState {
@@ -246,14 +251,26 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
     if (fold.passedPlayers.length === memberIds.length) {
       dispatch(setFoldClosed());
       dispatch(setPlayersPassed(memberIds));
+      dispatch(setCurrentPlayer(fold.moves.slice(-1)[0].playerId));
     } else if (
       fold.moves.length !== 0 &&
       fold.moves.slice(-1)[0].cards[0] % 13 === 12
     ) {
       dispatch(setPlayersPassed(memberIds));
       dispatch(setFoldClosed());
+      dispatch(setCurrentPlayer(fold.moves.slice(-1)[0].playerId));
+    } else if (fold.cardsPerPlay !== 4) {
+      const playedCardsInFold = fold.moves.map((move) => move.cards).flat();
+      if (
+        playedCardsInFold.length >= 4 &&
+        isAllSameFigure(playedCardsInFold.slice(-4))
+      ) {
+        dispatch(setFoldClosed());
+        dispatch(setPlayersPassed(memberIds));
+        dispatch(setCurrentPlayer(fold.moves.slice(-1)[0].playerId));
+      }
     }
-  } // TODO else 4 cards of same type in a row
+  }
 };
 
 export const selectGameId = (state: RootState) => state.game.gameId;

@@ -48,6 +48,9 @@ export const getColor = (cardIndex: number) =>
   colors[Math.floor(cardIndex / 13)];
 export const getFigure = (cardIndex: number) => figures[cardIndex % 13];
 
+export const isAllSameFigure = (cards: number[]) =>
+  new Set(cards.map((card) => getFigure(card))).size <= 1;
+
 export const isMoveAllowed = (fold: Fold | null, cards: number[]) => {
   const allSameFigure = new Set(cards.map((card) => getFigure(card))).size <= 1;
 
