@@ -3,6 +3,8 @@ import styled from "styled-components";
 export default styled.div`
   overflow: hidden;
   max-height: 30px;
+  padding-left: 10%;
+  padding-right: 10%;
 
   :last-of-type {
     overflow: visible;
@@ -17,7 +19,7 @@ export default styled.div`
       flex: 1;
     }
     section {
-      flex: 2;
+      flex: 1;
       flex-direction: row;
       display: flex;
     }

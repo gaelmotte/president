@@ -47,11 +47,7 @@ export default () => {
     <StyledFold>
       {fold && (
         <>
-          <header>
-            {" "}
-            <h3>This is a fold of {fold.cardsPerPlay} cards.</h3>
-            {closed && <h3>CLOSED</h3>}
-          </header>
+          {!closed && <h3>CLOSED</h3>}
           <section className="moves" ref={movesSection}>
             {fold.moves.map((move: Move, i: number) => (
               <MoveComp key={i} playerId={move.playerId}>

@@ -27,7 +27,7 @@ type Member = {
   id: string;
   info: {
     pseudo: string;
-    isLeader: boolean;
+    isHost: boolean;
     joinedAt: number;
   };
 };
@@ -149,8 +149,8 @@ export const connectToRoom = (roomId: string): AppThunk => (
 export const startNewGame = (): AppThunk => (dispatch, getState) => {
   if (!selectIsConnected(getState()))
     throw new Error("Cannot start game on an unconnected room");
-  if (!selectIsLeader(getState()))
-    throw new Error("Cannot start game is not the leader of the room");
+  if (!selectIsHost(getState()))
+    throw new Error("Cannot start game is not the Host of the room");
 
   const roomId = selectRoomId(getState());
 
@@ -176,9 +176,9 @@ export const selectRoomId = (state: RootState) => state.room.roomId;
 
 export const selectConnectedMembers = (state: RootState) => state.room.members;
 
-export const selectIsLeader = (state: RootState) =>
+export const selectIsHost = (state: RootState) =>
   state.room.members.some(
-    (member) => member.id === state.room.pusherId && member.info.isLeader
+    (member) => member.id === state.room.pusherId && member.info.isHost
   );
 
 export const selectLastGame = (state: RootState) =>
@@ -191,3 +191,17 @@ export default (gc: any, sc: any) => {
   setChannel = sc;
   return roomSlice.reducer;
 };
+
+export const selectHostId = (state: RootState) => {
+  if (state.room.members) {
+    const host = state.room.members.find((member) => member.info.isHost);
+    return host ? host.id : undefined;
+  }
+};
+
+export const selectPlayerPseudo = (playerId: string | undefined) => (
+  state: RootState
+) =>
+  playerId
+    ? state.room.members.find((member) => member.id === playerId)?.info.pseudo
+    : undefined;

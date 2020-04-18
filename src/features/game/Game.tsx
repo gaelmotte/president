@@ -11,22 +11,16 @@ import Fold from "./components/fold/Fold";
 
 import StyledGame from "./Game.style";
 
-export function Game({
-  gameId,
-  isLeader,
-}: {
-  gameId: string;
-  isLeader: boolean;
-}) {
+export function Game({ gameId, isHost }: { gameId: string; isHost: boolean }) {
   const dispatch = useDispatch();
   const status = useSelector(selectStatus);
   const finishedPlayers = useSelector(selectFinishedPlayers);
 
   useEffect(() => {
     //init the game
-    dispatch(initializeGame(isLeader));
+    dispatch(initializeGame(isHost));
     return () => {};
-  }, [dispatch, isLeader]);
+  }, [dispatch, isHost]);
 
   return (
     <StyledGame>

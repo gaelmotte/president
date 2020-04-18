@@ -14,16 +14,20 @@ import {
   selectIsConnected,
   selectConnectedMembers,
   selectCurrentGameId,
-  selectIsLeader,
+  selectIsHost,
   startNewGame,
+  selectHostId,
+  selectPlayerPseudo,
 } from "./roomSlice";
 
 export function Room() {
   const pseudo = useSelector(selectPseudo);
   const connectedMembers = useSelector(selectConnectedMembers);
   const isConnected = useSelector(selectIsConnected);
-  const isLeader = useSelector(selectIsLeader);
+  const isHost = useSelector(selectIsHost);
   const currentGameId = useSelector(selectCurrentGameId);
+  const hostId = useSelector(selectHostId);
+  const hostPseudo = useSelector(selectPlayerPseudo(hostId));
   const dispatch = useDispatch();
   const {
     params: { roomId },
@@ -47,9 +51,7 @@ export function Room() {
   console.log(connectedMembers);
   return (
     <StyledRoom>
-      <h1>
-        Room {roomId} {isConnected ? "Connected as " + pseudo : "Connecting"}
-      </h1>
+      {isConnected && <h1>Room created by {hostPseudo}.</h1>}
       {!isConnected && (
         <form onSubmit={handleSubmitConnectionForm}>
           <input
@@ -60,18 +62,15 @@ export function Room() {
           <input type="submit" />
         </form>
       )}
+
       {isConnected && (
-        <ul>
-          {connectedMembers.map((member) => (
-            <li key={member.id}>
-              {member.info.pseudo}{" "}
-              {member.info.isLeader ? "Leader" : "Not Leader"}
-            </li>
-          ))}
-        </ul>
+        <>
+          Connected to the room :{" "}
+          {connectedMembers.map((member) => member.info.pseudo).join(", ")}
+        </>
       )}
-      {currentGameId && <Game gameId={currentGameId} isLeader={isLeader} />}
-      {!currentGameId && isLeader && (
+      {currentGameId && <Game gameId={currentGameId} isHost={isHost} />}
+      {!currentGameId && isHost && (
         <>
           <h2>
             <button onClick={() => dispatch(startNewGame())}>

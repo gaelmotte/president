@@ -4,5 +4,6 @@ export default styled.div`
   .cards {
     display: flex;
     flex-direction: row;
+    justify-content: center;
   }
 `;
