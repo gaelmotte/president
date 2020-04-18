@@ -12,6 +12,7 @@ interface RoomState {
   members: Member[];
   pastGames: PastGame[];
   currentGame: string | null;
+  currentGamePlayerIds: string[] | null;
 }
 
 const initialState: RoomState = {
@@ -21,6 +22,7 @@ const initialState: RoomState = {
   members: [],
   pastGames: [],
   currentGame: null,
+  currentGamePlayerIds: null,
 };
 
 type Member = {
@@ -34,6 +36,7 @@ type Member = {
 
 type PastGame = {
   id: string;
+  playeIds: string[];
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -77,8 +80,12 @@ export const roomSlice = createSlice({
           : 1
       );
     },
-    setCurrentGame: (state, action: PayloadAction<string>) => {
-      state.currentGame = action.payload;
+    setCurrentGame: (
+      state,
+      action: PayloadAction<{ gameId: string; playerIds: string[] }>
+    ) => {
+      state.currentGame = action.payload.gameId;
+      state.currentGamePlayerIds = action.payload.playerIds;
     },
   },
 });
@@ -141,12 +148,18 @@ export const connectToRoom = (roomId: string): AppThunk => (
     dispatch(removeConnectedMember(member));
   });
 
-  channel.bind("client-game-starting", ({ gameId }: { gameId: string }) => {
-    dispatch(setCurrentGame(gameId));
-  });
+  channel.bind(
+    "client-game-starting",
+    ({ gameId, playerIds }: { gameId: string; playerIds: string[] }) => {
+      dispatch(setCurrentGame({ gameId, playerIds }));
+    }
+  );
 };
 
-export const startNewGame = (): AppThunk => (dispatch, getState) => {
+export const startNewGame = (playerIds: string[]): AppThunk => (
+  dispatch,
+  getState
+) => {
   if (!selectIsConnected(getState()))
     throw new Error("Cannot start game on an unconnected room");
   if (!selectIsHost(getState()))
@@ -160,9 +173,9 @@ export const startNewGame = (): AppThunk => (dispatch, getState) => {
   }
 
   const gameId = uuidv4();
-  dispatch(setCurrentGame(gameId));
+  dispatch(setCurrentGame({ gameId, playerIds }));
 
-  channel.trigger("client-game-starting", { gameId });
+  channel.trigger("client-game-starting", { gameId, playerIds });
 };
 
 // The function below is called a selector and allows us to select a value from
@@ -186,6 +199,9 @@ export const selectLastGame = (state: RootState) =>
 
 export const selectCurrentGameId = (state: RootState) => state.room.currentGame;
 
+export const selectCurrentGamePlayerIds = (state: RootState) =>
+  state.room.currentGamePlayerIds;
+
 export default (gc: any, sc: any) => {
   getChannel = gc;
   setChannel = sc;
@@ -205,3 +221,8 @@ export const selectPlayerPseudo = (playerId: string | undefined) => (
   playerId
     ? state.room.members.find((member) => member.id === playerId)?.info.pseudo
     : undefined;
+
+export const selectPreviousGamePlayers = (state: RootState) => {
+  if (state.room.pastGames.length === 0) return null;
+  return state.room.pastGames.slice(-1)[0].playeIds;
+};

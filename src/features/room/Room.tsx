@@ -14,10 +14,12 @@ import {
   selectIsConnected,
   selectConnectedMembers,
   selectCurrentGameId,
+  selectCurrentGamePlayerIds,
   selectIsHost,
   startNewGame,
   selectHostId,
   selectPlayerPseudo,
+  selectPreviousGamePlayers,
 } from "./roomSlice";
 
 export function Room() {
@@ -26,8 +28,10 @@ export function Room() {
   const isConnected = useSelector(selectIsConnected);
   const isHost = useSelector(selectIsHost);
   const currentGameId = useSelector(selectCurrentGameId);
+  const currentGamePlayerIds = useSelector(selectCurrentGamePlayerIds);
   const hostId = useSelector(selectHostId);
   const hostPseudo = useSelector(selectPlayerPseudo(hostId));
+  const previousGamePlayers = useSelector(selectPreviousGamePlayers);
   const dispatch = useDispatch();
   const {
     params: { roomId },
@@ -69,14 +73,26 @@ export function Room() {
           {connectedMembers.map((member) => member.info.pseudo).join(", ")}
         </>
       )}
-      {currentGameId && <Game gameId={currentGameId} isHost={isHost} />}
-      {!currentGameId && isHost && (
+      {currentGameId && currentGamePlayerIds && (
+        <Game
+          gameId={currentGameId}
+          isHost={isHost}
+          playerIds={currentGamePlayerIds}
+        />
+      )}
+      {!currentGameId && isHost && !previousGamePlayers && (
         <>
-          <h2>
-            <button onClick={() => dispatch(startNewGame())}>
-              Start Next Game
-            </button>
-          </h2>
+          <h2>Start a game</h2>
+          Starting a game for all the connected members for that first game.
+          <button
+            onClick={() =>
+              dispatch(
+                startNewGame(connectedMembers.map((member) => member.id))
+              )
+            }
+          >
+            Start Next Game
+          </button>
         </>
       )}
     </StyledRoom>
