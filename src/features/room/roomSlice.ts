@@ -82,7 +82,10 @@ export const roomSlice = createSlice({
     },
     setCurrentGame: (
       state,
-      action: PayloadAction<{ gameId: string; playerIds: string[] }>
+      action: PayloadAction<{
+        gameId: string | null;
+        playerIds: string[] | null;
+      }>
     ) => {
       state.currentGame = action.payload.gameId;
       state.currentGamePlayerIds = action.payload.playerIds;

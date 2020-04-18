@@ -39,6 +39,7 @@ export const gameSlice = createSlice({
   name: "game",
   initialState,
   reducers: {
+    reset: (state) => initialState,
     setStatus: (
       state,
       action: PayloadAction<"starting" | "running" | "finished" | undefined>
@@ -108,6 +109,7 @@ export const {
   setPlayedMove,
   setPlayerPassed,
   setPlayersPassed,
+  reset,
 } = gameSlice.actions;
 
 export const initializeGame = (
