@@ -1,20 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import Pusher from "pusher-js";
 import * as PusherTypes from "pusher-js";
-import { v4 as uuidv4 } from "uuid";
 
 import { AppThunk, RootState } from "../../app/store";
 
-import { dealCards } from "../../services/cardsUtils";
-import { stat } from "fs";
-import CardStyle from "./components/card/Card.style";
+import { dealCards, Fold } from "../../services/cardsUtils";
 
 interface GameState {
   gameId: string | null;
   status: "starting" | "running" | "finished" | undefined;
   playersHands: { [playerId: string]: number[] };
   currentPlayer: string | null;
-  currentFold: number[][] | null;
+  currentFold: Fold | null;
 }
 const initialState: GameState = {
   gameId: null,
@@ -48,11 +44,19 @@ export const gameSlice = createSlice({
     setCurrentPlayer: (state, action: PayloadAction<string>) => {
       state.currentPlayer = action.payload;
     },
-    setNewFold: (state) => {
-      state.currentFold = [];
+    setNewFold: (state, action: PayloadAction<number[]>) => {
+      // TODO determine how many cards should be played in this fold
+      state.currentFold = {
+        cards: [],
+        passedPlayers: [],
+        cardsPerPlay: action.payload.length,
+      };
+    },
+    setEndFold: (state) => {
+      state.currentFold = null;
     },
     setCardsToCurrentFold: (state, action: PayloadAction<number[]>) => {
-      if (state.currentFold) state.currentFold.push(action.payload);
+      if (state.currentFold) state.currentFold.cards.push(action.payload);
     },
     setCardsPlayedByPlayer: (
       state,
@@ -62,6 +66,9 @@ export const gameSlice = createSlice({
         action.payload.playerId
       ].filter((card) => !action.payload.cards.includes(card));
     },
+    setPlayerPassed: (state, action: PayloadAction<string>) => {
+      state.currentFold?.passedPlayers.push(action.payload);
+    },
   },
 });
 
@@ -70,8 +77,10 @@ export const {
   setPlayersHands,
   setCurrentPlayer,
   setNewFold,
+  setEndFold,
   setCardsToCurrentFold,
   setCardsPlayedByPlayer,
+  setPlayerPassed,
 } = gameSlice.actions;
 
 export const initializeGame = (isLeader: boolean): AppThunk => (
@@ -96,7 +105,6 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
         channel.trigger("client-game-cards-dealt", hands);
         dispatch(setPlayersHands(hands));
         dispatch(setCurrentPlayer(pusherId));
-        dispatch(setNewFold());
       }, 1000);
     }
   } else {
@@ -110,7 +118,6 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
         console.log("Received cards", data);
         dispatch(setPlayersHands(data));
         dispatch(setCurrentPlayer(metadata.user_id));
-        dispatch(setNewFold());
       }
     );
   }
@@ -119,13 +126,53 @@ export const initializeGame = (isLeader: boolean): AppThunk => (
   channel.bind(
     "client-game-cards-played",
     (data: any, metadata: { user_id: string }) => {
-      console.log(data);
       const nextPLayer = selectNextPLayer(getState());
-      if (nextPLayer) dispatch(setCurrentPlayer(nextPLayer));
       dispatch(setCardsToCurrentFold(data));
       dispatch(
         setCardsPlayedByPlayer({ playerId: metadata.user_id, cards: data })
       );
+      if (nextPLayer) {
+        dispatch(setCurrentPlayer(nextPLayer));
+      } else {
+        setTimeout(() => dispatch(setEndFold()), 3000);
+      }
+    }
+  );
+
+  channel.bind(
+    "client-game-player-passed",
+    (data: any, metadata: { user_id: string }) => {
+      console.log("player passed", metadata.user_id);
+      dispatch(setPlayerPassed(metadata.user_id));
+      const nextPLayer = selectNextPLayer(getState());
+      if (nextPLayer) {
+        dispatch(setCurrentPlayer(nextPLayer));
+      } else {
+        setTimeout(() => dispatch(setEndFold()), 3000);
+      }
+    }
+  );
+
+  channel.bind(
+    "client-game-fold-started",
+    (data: number[], metadata: { user_id: string }) => {
+      console.log("fold started", metadata.user_id);
+      dispatch(setNewFold(data));
+
+      const currentPlayer = selectCurrentPlayer(getState());
+      if (!currentPlayer) throw "No current PLayer";
+
+      dispatch(setCardsToCurrentFold(data));
+      dispatch(
+        setCardsPlayedByPlayer({ playerId: currentPlayer, cards: data })
+      );
+
+      const nextPLayer = selectNextPLayer(getState());
+      if (nextPLayer) {
+        dispatch(setCurrentPlayer(nextPLayer));
+      } else {
+        setTimeout(() => dispatch(setEndFold()), 3000);
+      }
     }
   );
 };
@@ -137,6 +184,8 @@ export const playCards = (cards: number[]): AppThunk => (
   const channel: PusherTypes.PresenceChannel | null = getChannel();
   if (!channel) throw new Error("Channel not initialized");
 
+  // TODO Validate input cards makes sense
+
   channel.trigger("client-game-cards-played", cards);
   console.log("playing cards");
 
@@ -147,7 +196,57 @@ export const playCards = (cards: number[]): AppThunk => (
   dispatch(setCardsPlayedByPlayer({ playerId: currentPlayer, cards }));
 
   const nextPLayer = selectNextPLayer(getState());
-  if (nextPLayer) dispatch(setCurrentPlayer(nextPLayer));
+  if (nextPLayer) {
+    dispatch(setCurrentPlayer(nextPLayer));
+  } else {
+    setTimeout(() => dispatch(setEndFold()), 3000);
+  }
+};
+
+export const pass = (): AppThunk => (dispatch, getState) => {
+  const channel: PusherTypes.PresenceChannel | null = getChannel();
+  if (!channel) throw new Error("Channel not initialized");
+
+  channel.trigger("client-game-player-passed", {});
+
+  const currentPlayer = selectCurrentPlayer(getState());
+  if (!currentPlayer) throw "No current PLayer";
+
+  dispatch(setPlayerPassed(currentPlayer));
+
+  const nextPLayer = selectNextPLayer(getState());
+  if (nextPLayer) {
+    dispatch(setCurrentPlayer(nextPLayer));
+  } else {
+    setTimeout(() => dispatch(setEndFold()), 3000);
+  }
+};
+
+export const startNewFold = (cards: number[]): AppThunk => (
+  dispatch,
+  getState
+) => {
+  const channel: PusherTypes.PresenceChannel | null = getChannel();
+  if (!channel) throw new Error("Channel not initialized");
+
+  // TODO Validate input cards makes sense
+
+  channel.trigger("client-game-fold-started", cards);
+
+  dispatch(setNewFold(cards));
+
+  const currentPlayer = selectCurrentPlayer(getState());
+  if (!currentPlayer) throw "No current PLayer";
+
+  dispatch(setCardsToCurrentFold(cards));
+  dispatch(setCardsPlayedByPlayer({ playerId: currentPlayer, cards }));
+
+  const nextPLayer = selectNextPLayer(getState());
+  if (nextPLayer) {
+    dispatch(setCurrentPlayer(nextPLayer));
+  } else {
+    setTimeout(() => dispatch(setEndFold()), 3000);
+  }
 };
 
 export const selectGameId = (state: RootState) => state.game.gameId;
@@ -160,6 +259,10 @@ export const selectPlayerHand = (state: RootState) =>
 
 export const selectIsPlayerTurn = (state: RootState) =>
   state.game.currentPlayer === state.room.pusherId;
+export const selectHasPlayerPassed = (state: RootState) =>
+  state.room.pusherId &&
+  state.game.currentFold?.passedPlayers.includes(state.room.pusherId);
+
 export const selectCurrentPlayer = (state: RootState) =>
   state.game.currentPlayer;
 
@@ -169,11 +272,22 @@ export const selectNextPLayer = (state: RootState) => {
   const currentPLayerIndex = state.room.members.findIndex(
     (member) => member.id === state.game.currentPlayer
   );
-  if (currentPLayerIndex !== -1) {
-    return state.room.members[
-      (currentPLayerIndex + 1) % state.room.members.length
-    ].id;
+  if (currentPLayerIndex === -1) throw new Error("NO CURRENT PLAYER");
+
+  for (let i = 0; i < state.room.members.length; i++) {
+    const consideredPlayerIndex =
+      (currentPLayerIndex + 1 + i) % state.room.members.length;
+    const consideredPlayerId = state.room.members[consideredPlayerIndex].id;
+    console.log(currentPLayerIndex, consideredPlayerIndex, consideredPlayerId);
+    if (
+      state.game.playersHands[consideredPlayerId].length > 0 &&
+      !state.game.currentFold?.passedPlayers.includes(consideredPlayerId)
+    ) {
+      // has still cards in hand and has not passed
+      return consideredPlayerId;
+    }
   }
+  // no player available, return null
   return null;
 };
 

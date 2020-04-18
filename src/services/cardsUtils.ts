@@ -47,3 +47,45 @@ export const compareValues = (a: number, b: number) => {
 export const getColor = (cardIndex: number) =>
   colors[Math.floor(cardIndex / 13)];
 export const getFigure = (cardIndex: number) => figures[cardIndex % 13];
+
+export const isMoveAllowed = (fold: Fold | null, cards: number[]) => {
+  const allSameFigure = new Set(cards.map((card) => getFigure(card))).size <= 1;
+
+  if (!fold) {
+    // validating only that the cards are in right numbers and have same values
+    return cards.length > 0 && cards.length < 5 && allSameFigure;
+  } else {
+    // validating based on previous events in the fold.
+    console.log(cards.length, fold.cardsPerPlay);
+    if (
+      !allSameFigure ||
+      (cards.length !== fold.cardsPerPlay && cards.length !== 0)
+    )
+      return false;
+
+    console.log(fold.cards, fold.cards.slice(-2));
+    if (
+      fold.cards.length >= 2 &&
+      new Set(fold.cards.slice(-2).map((cards) => getFigure(cards[0]))).size ===
+        1
+    ) {
+      return (
+        cards.length === 0 ||
+        (cards.length === fold.cardsPerPlay &&
+          getFigure(cards[0]) === getFigure(fold.cards.slice(-1)[0][0]))
+      );
+    }
+
+    return (
+      cards.length === fold.cardsPerPlay &&
+      (fold.cards.slice(-1)[0].length === 0 ||
+        cards[0] % 13 >= fold.cards.slice(-1)[0][0] % 13)
+    );
+  }
+};
+
+export type Fold = {
+  cards: number[][];
+  cardsPerPlay: number;
+  passedPlayers: string[];
+};
