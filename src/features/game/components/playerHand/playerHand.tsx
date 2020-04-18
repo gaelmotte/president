@@ -6,14 +6,16 @@ import {
   selectIsPlayerTurn,
   playCards,
   pass,
-  selectHasPlayerPassed,
+  selectIsSameOrNothingPlay,
   selectCurrentFold,
   startNewFold,
+  selectPusherId,
 } from "../../gameSlice";
 import Card from "../card/Card";
 import { compareValues, isMoveAllowed } from "../../../../services/cardsUtils";
+import Adversary from "../adversary/Adversary";
+
 import StyledHand from "./playerHand.style";
-import { addListener } from "cluster";
 
 export function PlayerHand() {
   const hand = useSelector(selectPlayerHand);
@@ -21,6 +23,8 @@ export function PlayerHand() {
   const dispatch = useDispatch();
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const fold = useSelector(selectCurrentFold);
+  const playerId = useSelector(selectPusherId);
+  const isSameOrNothingPlay = useSelector(selectIsSameOrNothingPlay);
 
   const toggleCard = useCallback(
     (cardId: number) => {
@@ -35,7 +39,10 @@ export function PlayerHand() {
 
   return (
     <StyledHand>
-      <section className="actions">
+      <div className="playerInfo">
+        {playerId && <Adversary playerId={playerId} />}
+      </div>
+      <div className="buttons">
         {isPlayerTurn && !fold && (
           <button
             onClick={() => {
@@ -66,17 +73,20 @@ export function PlayerHand() {
                 ? `Play ${selectedCards.length} Card`
                 : `Play ${selectedCards.length} Cards`}
             </button>
-            <button
-              onClick={() => {
-                dispatch(pass());
-                setSelectedCards([]);
-              }}
-            >
-              Pass
-            </button>
+            {!isSameOrNothingPlay && (
+              <button
+                onClick={() => {
+                  dispatch(pass());
+                  setSelectedCards([]);
+                }}
+              >
+                Pass
+              </button>
+            )}
           </>
         )}
-      </section>
+      </div>
+
       <section className="cards">
         {hand &&
           hand

@@ -10,7 +10,7 @@ import {
   selectCurrentFold,
   selectIsPlayerTurn,
   setEndFold,
-  selectMembersIds,
+  selectPlayerIds,
 } from "../../gameSlice";
 
 import { Move, Fold } from "../../../../services/cardsUtils";
@@ -18,7 +18,7 @@ import { Move, Fold } from "../../../../services/cardsUtils";
 export default () => {
   const fold: Fold | null = useSelector(selectCurrentFold);
   const isPlayerTurn = useSelector(selectIsPlayerTurn);
-  const members = useSelector(selectMembersIds);
+  const playerIds = useSelector(selectPlayerIds);
   const dispatch = useDispatch();
 
   const closed = fold?.closed;
@@ -47,20 +47,22 @@ export default () => {
     <StyledFold>
       {fold && (
         <>
-          {!closed && <h3>CLOSED</h3>}
+          {closed && <h3>CLOSED</h3>}
           <section className="moves" ref={movesSection}>
-            {fold.moves.map((move: Move, i: number) => (
-              <MoveComp key={i} playerId={move.playerId}>
-                {move.cards.map((cardIndex, j) => (
-                  <Card
-                    key={j}
-                    cardIndex={cardIndex}
-                    selected={false}
-                    handleClick={() => {}}
-                  />
-                ))}
-              </MoveComp>
-            ))}
+            {fold.moves
+              .filter((move) => move.cards.length !== 0)
+              .map((move: Move, i: number) => (
+                <MoveComp key={i} playerId={move.playerId}>
+                  {move.cards.map((cardIndex, j) => (
+                    <Card
+                      key={j}
+                      cardIndex={cardIndex}
+                      selected={false}
+                      handleClick={() => {}}
+                    />
+                  ))}
+                </MoveComp>
+              ))}
           </section>
         </>
       )}

@@ -68,14 +68,23 @@ export const isMoveAllowed = (fold: Fold | null, cards: number[]) => {
 
     console.log(fold.moves, fold.moves.slice(-2));
     if (
-      fold.moves.length >= 2 &&
-      new Set(fold.moves.slice(-2).map((move) => getFigure(move.cards[0])))
-        .size === 1
+      fold.moves.filter((move) => move.cards.length !== 0).length >= 2 &&
+      new Set(
+        fold.moves
+          .filter((move) => move.cards.length !== 0)
+          .slice(-2)
+          .map((move) => getFigure(move.cards[0]))
+      ).size === 1 &&
+      fold.moves.slice(-1)[0].cards.length !== 0
     ) {
       return (
         cards.length === 0 ||
         (cards.length === fold.cardsPerPlay &&
-          getFigure(cards[0]) === getFigure(fold.moves.slice(-1)[0].cards[0]))
+          getFigure(cards[0]) ===
+            getFigure(
+              fold.moves.filter((move) => move.cards.length !== 0).slice(-1)[0]
+                .cards[0]
+            ))
       );
     }
 
