@@ -276,7 +276,7 @@ export const initializeGame = (
       console.log("playing cards", data);
       if (data.length === 4) dispatch(setToggleRevolution());
       const nextPLayer = selectNextPlayer(getState());
-      if (nextPLayer) {
+      if (nextPLayer && !selectIsFoldClosed(getState())) {
         dispatch(setCurrentPlayer(nextPLayer));
       }
     }
@@ -289,7 +289,7 @@ export const initializeGame = (
       dispatch(setPlayerPassed(metadata.user_id));
       dispatch(checkClosedFold());
       const nextPLayer = selectNextPlayer(getState());
-      if (nextPLayer) {
+      if (nextPLayer && !selectIsFoldClosed(getState())) {
         dispatch(setCurrentPlayer(nextPLayer));
       }
     }
@@ -309,7 +309,7 @@ export const initializeGame = (
       dispatch(checkClosedFold());
 
       const nextPLayer = selectNextPlayer(getState());
-      if (nextPLayer) {
+      if (nextPLayer && !selectIsFoldClosed(getState())) {
         dispatch(setCurrentPlayer(nextPLayer));
       }
     }
@@ -360,7 +360,7 @@ export const playCards = (cards: number[]): AppThunk => (
   dispatch(checkClosedFold());
 
   const nextPLayer = selectNextPlayer(getState());
-  if (nextPLayer) {
+  if (nextPLayer && !selectIsFoldClosed(getState())) {
     dispatch(setCurrentPlayer(nextPLayer));
   }
 };
@@ -406,7 +406,7 @@ export const pass = (): AppThunk => (dispatch, getState) => {
   dispatch(checkClosedFold());
 
   const nextPLayer = selectNextPlayer(getState());
-  if (nextPLayer) {
+  if (nextPLayer && !selectIsFoldClosed(getState())) {
     dispatch(setCurrentPlayer(nextPLayer));
   }
 };
@@ -431,7 +431,7 @@ export const startNewFold = (cards: number[]): AppThunk => (
   dispatch(checkClosedFold());
 
   const nextPLayer = selectNextPlayer(getState());
-  if (nextPLayer) {
+  if (nextPLayer && !selectIsFoldClosed(getState())) {
     dispatch(setCurrentPlayer(nextPLayer));
   }
 };
@@ -497,7 +497,7 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
       })
     ) {
       dispatch(setFoldClosed());
-      dispatch(setPlayersPassed(playerIds));
+
       dispatch(
         setCurrentPlayer(
           fold.moves.filter((move) => move.cards.length > 0).slice(-1)[0]
@@ -509,7 +509,6 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
       ((!isRevolution && fold.moves.slice(-1)[0].cards[0] % 13 === 12) ||
         (isRevolution && fold.moves.slice(-1)[0].cards[0] % 13 === 0))
     ) {
-      dispatch(setPlayersPassed(playerIds));
       dispatch(setFoldClosed());
       const handsize = selectAdversaryHandSize(
         fold.moves.slice(-1)[0].playerId
@@ -532,7 +531,6 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
         isAllSameFigure(playedCardsInFold.slice(-4))
       ) {
         dispatch(setFoldClosed());
-        dispatch(setPlayersPassed(playerIds));
         dispatch(
           setCurrentPlayer(
             fold.moves.filter((move) => move.cards.length > 0).slice(-1)[0]
