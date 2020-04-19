@@ -144,6 +144,7 @@ export const initializeGame = (
     console.log("Deal cards");
 
     const hands = dealCards(playerIds);
+    const cardEchangeOrders = null; // TODO select card exchange orders
     const pusherId = selectPusherId(getState());
     console.log("dealing cards as ", pusherId);
     if (pusherId) {
@@ -151,6 +152,15 @@ export const initializeGame = (
         channel.trigger("client-game-cards-dealt", hands);
         dispatch(setPlayersHands(hands));
         dispatch(setCurrentPlayer(pusherId));
+        if (cardEchangeOrders) {
+          channel.trigger(
+            "client-game-cards-to-be-exchanged",
+            cardEchangeOrders
+          );
+          //dispatch corresponding actions
+        } else {
+          channel.trigger("client-game-started", {});
+        }
       }, 1000);
     }
   } else {
@@ -164,6 +174,31 @@ export const initializeGame = (
         console.log("Received cards", data);
         dispatch(setPlayersHands(data));
         dispatch(setCurrentPlayer(metadata.user_id));
+      }
+    );
+
+    channel.bind(
+      "client-game-cards-to-be-exchanged",
+      (data: {}, metadata: { user_id: string }) => {
+        console.log("cards exchange starting", data);
+        // TODO, if current player is one of them, do exchange
+      }
+    );
+
+    channel.bind(
+      "client-game-cards-exchanged",
+      (data: {}, metadata: { user_id: string }) => {
+        console.log("cards exchange done", data);
+        // TODO update Card Exchange orders.
+      }
+    );
+
+    channel.bind(
+      "client-game-started",
+      (data: {}, metadata: { user_id: string }) => {
+        console.log("cards exchange done", data);
+        // TODO update hands based on what was exchanged for every players.
+        // TODO set status running
       }
     );
   }
@@ -311,6 +346,18 @@ export const archiveCurrentGame = (): AppThunk => (dispatch, getState) => {
     throw new Error("WE FORGOT TO FLAG SOMEONE AS FINISHED");
 
   dispatch(setPastGame({ id: currentGame, playerIds, finishOrder }));
+
+  const channel: PusherTypes.PresenceChannel | null = getChannel();
+  if (!channel) throw new Error("Channel not initialized");
+  [
+    "client-game-cards-dealt",
+    "client-game-cards-to-be-exchanged",
+    "client-game-started",
+    "client-game-cards-exchanged",
+    "client-game-cards-played",
+    "client-game-player-passed",
+    "client-game-fold-started",
+  ].map((message) => channel.unbind(message));
 };
 
 export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
