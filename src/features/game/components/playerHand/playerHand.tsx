@@ -54,6 +54,9 @@ export function PlayerHand() {
     return () => {};
   }, [order, dispatch, hand]);
 
+  const sortedHand = hand?.slice().sort(compareValues);
+  if (isRevolution) sortedHand?.reverse();
+
   return (
     <StyledHand>
       <div className="playerInfo">
@@ -107,8 +110,12 @@ export function PlayerHand() {
               }}
             >
               {selectedCards.length < 2
-                ? `Play ${selectedCards.length} Card`
-                : `Play ${selectedCards.length} Cards`}
+                ? `Play ${selectedCards.length} Card. ${
+                    isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
+                  }`
+                : `Play ${selectedCards.length} Cards. ${
+                    isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
+                  }`}
             </button>
             {!isSameOrNothingPlay && (
               <button
@@ -125,18 +132,15 @@ export function PlayerHand() {
       </div>
 
       <section className="cards">
-        {hand &&
-          hand
-            .slice()
-            .sort(compareValues)
-            .map((cardId) => (
-              <Card
-                cardIndex={cardId}
-                key={cardId}
-                selected={selectedCards.includes(cardId)}
-                handleClick={toggleCard}
-              ></Card>
-            ))}
+        {sortedHand &&
+          sortedHand.map((cardId) => (
+            <Card
+              cardIndex={cardId}
+              key={cardId}
+              selected={selectedCards.includes(cardId)}
+              handleClick={toggleCard}
+            ></Card>
+          ))}
       </section>
     </StyledHand>
   );

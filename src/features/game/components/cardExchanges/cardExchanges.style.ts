@@ -6,4 +6,20 @@ export default styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
+
+  .exchanges {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row;
+
+    & > div {
+      flex: 1;
+    }
+
+    .cards {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
 `;
