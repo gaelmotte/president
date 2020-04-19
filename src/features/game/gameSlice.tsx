@@ -276,7 +276,11 @@ export const initializeGame = (
       console.log("playing cards", data);
       if (data.length === 4) dispatch(setToggleRevolution());
       const nextPLayer = selectNextPlayer(getState());
-      if (nextPLayer) {
+      if (
+        nextPLayer &&
+        (!selectIsFoldClosed(getState()) ||
+          selectFinishedPlayers(getState())?.includes(metadata.user_id))
+      ) {
         dispatch(setCurrentPlayer(nextPLayer));
       }
     }
@@ -289,7 +293,11 @@ export const initializeGame = (
       dispatch(setPlayerPassed(metadata.user_id));
       dispatch(checkClosedFold());
       const nextPLayer = selectNextPlayer(getState());
-      if (nextPLayer) {
+      if (
+        nextPLayer &&
+        (!selectIsFoldClosed(getState()) ||
+          selectFinishedPlayers(getState())?.includes(metadata.user_id))
+      ) {
         dispatch(setCurrentPlayer(nextPLayer));
       }
     }
@@ -309,7 +317,11 @@ export const initializeGame = (
       dispatch(checkClosedFold());
 
       const nextPLayer = selectNextPlayer(getState());
-      if (nextPLayer) {
+      if (
+        nextPLayer &&
+        (!selectIsFoldClosed(getState()) ||
+          selectFinishedPlayers(getState())?.includes(currentPlayer))
+      ) {
         dispatch(setCurrentPlayer(nextPLayer));
       }
     }
@@ -360,7 +372,11 @@ export const playCards = (cards: number[]): AppThunk => (
   dispatch(checkClosedFold());
 
   const nextPLayer = selectNextPlayer(getState());
-  if (nextPLayer) {
+  if (
+    nextPLayer &&
+    (!selectIsFoldClosed(getState()) ||
+      selectFinishedPlayers(getState())?.includes(currentPlayer))
+  ) {
     dispatch(setCurrentPlayer(nextPLayer));
   }
 };
@@ -406,7 +422,11 @@ export const pass = (): AppThunk => (dispatch, getState) => {
   dispatch(checkClosedFold());
 
   const nextPLayer = selectNextPlayer(getState());
-  if (nextPLayer) {
+  if (
+    nextPLayer &&
+    (!selectIsFoldClosed(getState()) ||
+      selectFinishedPlayers(getState())?.includes(currentPlayer))
+  ) {
     dispatch(setCurrentPlayer(nextPLayer));
   }
 };
@@ -431,7 +451,11 @@ export const startNewFold = (cards: number[]): AppThunk => (
   dispatch(checkClosedFold());
 
   const nextPLayer = selectNextPlayer(getState());
-  if (nextPLayer) {
+  if (
+    nextPLayer &&
+    (!selectIsFoldClosed(getState()) ||
+      selectFinishedPlayers(getState())?.includes(currentPlayer))
+  ) {
     dispatch(setCurrentPlayer(nextPLayer));
   }
 };
@@ -487,29 +511,11 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
     const playerIds = selectPlayerIds(getState());
     if (!playerIds) return false;
 
-    // Closed if all those that have cards left in their hands have passed.
     if (
-      !playerIds.some((playerId) => {
-        const handSize = selectAdversaryHandSize(playerId)(getState());
-        return (
-          handSize && handSize > 0 && !fold.passedPlayers.includes(playerId)
-        );
-      })
-    ) {
-      dispatch(setFoldClosed());
-      dispatch(setPlayersPassed(playerIds));
-      dispatch(
-        setCurrentPlayer(
-          fold.moves.filter((move) => move.cards.length > 0).slice(-1)[0]
-            .playerId
-        )
-      );
-    } else if (
       fold.moves.length !== 0 &&
       ((!isRevolution && fold.moves.slice(-1)[0].cards[0] % 13 === 12) ||
         (isRevolution && fold.moves.slice(-1)[0].cards[0] % 13 === 0))
     ) {
-      dispatch(setPlayersPassed(playerIds));
       dispatch(setFoldClosed());
       const handsize = selectAdversaryHandSize(
         fold.moves.slice(-1)[0].playerId
@@ -525,6 +531,23 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
             .playerId
         )
       );
+    } // Closed if all those that have cards left in their hands have passed.
+    else if (
+      !playerIds.some((playerId) => {
+        const handSize = selectAdversaryHandSize(playerId)(getState());
+        return (
+          handSize && handSize > 0 && !fold.passedPlayers.includes(playerId)
+        );
+      })
+    ) {
+      dispatch(setFoldClosed());
+
+      dispatch(
+        setCurrentPlayer(
+          fold.moves.filter((move) => move.cards.length > 0).slice(-1)[0]
+            .playerId
+        )
+      );
     } else if (fold.cardsPerPlay !== 4) {
       const playedCardsInFold = fold.moves.map((move) => move.cards).flat();
       if (
@@ -532,7 +555,6 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
         isAllSameFigure(playedCardsInFold.slice(-4))
       ) {
         dispatch(setFoldClosed());
-        dispatch(setPlayersPassed(playerIds));
         dispatch(
           setCurrentPlayer(
             fold.moves.filter((move) => move.cards.length > 0).slice(-1)[0]
@@ -769,4 +791,69 @@ export const selectComputeStartingPlayer = (playerIds: string[]) => (
   const { finishOrder } = state.room.pastGames.slice(-1)[0];
 
   return finishOrder.slice(-1)[0];
+};
+
+export const finishEmoji = Object.freeze({
+  2: ["🎖", "💩"],
+  3: ["🎖", "👐", "💩"],
+  4: ["🎖", "🥈", "🖕", "💩"],
+  5: ["🎖", "🥈", "👐", "🖕", "💩"],
+  6: ["🎖", "🥈", "👐", "👐", "🖕", "💩"],
+});
+export const selectComputeFinishEmoji = (playerId: string) => (
+  state: RootState
+) => {
+  if (!state.game || !state.game.playerIds) return;
+  const disqualifiedIndex = state.game.disqualifiedPlayers?.findIndex(
+    (disqualifiedPlayer) => disqualifiedPlayer === playerId
+  );
+  const finishedIndex = state.game.finishedPlayers
+    ?.filter(
+      (finishedPlayer) =>
+        !state.game.disqualifiedPlayers?.includes(finishedPlayer)
+    )
+    .findIndex((finisheddPlayer) => finisheddPlayer === playerId);
+
+  const nbPlayers = state.game.playerIds.length;
+  if (
+    nbPlayers === 2 ||
+    nbPlayers === 3 ||
+    nbPlayers === 4 ||
+    nbPlayers === 5 ||
+    nbPlayers === 6
+  ) {
+    if (disqualifiedIndex !== undefined && disqualifiedIndex !== -1) {
+      return finishEmoji[nbPlayers].slice().reverse()[disqualifiedIndex];
+    } else if (finishedIndex !== undefined && finishedIndex !== -1) {
+      return finishEmoji[nbPlayers].slice()[finishedIndex];
+    }
+  }
+};
+
+export const selectComputePreviousFinishEmoji = (playerId: string) => (
+  state: RootState
+) => {
+  if (
+    !state.room ||
+    !state.room.pastGames ||
+    !state.game.playerIds ||
+    !selectSamePlayersAsPreviousGame(state.game.playerIds)
+  )
+    return;
+
+  const previousFinishIndex = state.room.pastGames
+    .slice(-1)[0]
+    .playerIds?.findIndex((p) => p === playerId);
+  const nbPlayers = state.game.playerIds.length;
+  if (
+    nbPlayers === 2 ||
+    nbPlayers === 3 ||
+    nbPlayers === 4 ||
+    nbPlayers === 5 ||
+    nbPlayers === 6
+  ) {
+    if (previousFinishIndex !== undefined && previousFinishIndex !== -1) {
+      return finishEmoji[nbPlayers].slice()[previousFinishIndex];
+    }
+  }
 };

@@ -74,15 +74,6 @@ export function Game({
   return (
     <StyledGame>
       {missingPlayer && <h3>Manche Annulée - Joueur déconnecté</h3>}
-      <section>
-        {finishedPlayers && finishedPlayers.length > 0 && (
-          <ul>
-            {finishedPlayers.map((player) => (
-              <li key={player}>{player}</li>
-            ))}
-          </ul>
-        )}
-      </section>
       <section className="gameTable">
         <div
           className={classNames("adversaries", {
