@@ -36,43 +36,45 @@ export default () => {
 
   return (
     <StyledCardExchanges>
-      <section>
-        <ul>
-          {orders &&
-            orders.map((order) => (
-              <li>
-                {playersPseudo[order.from]} gives {order.number} {order.type}{" "}
-                cards to {playersPseudo[order.to]} :{" "}
-                {order.cards.length === order.number ? "✅" : "❌"}
-              </li>
-            ))}
-        </ul>
+      <section className="orders">
+        {orders &&
+          orders.map((order) => (
+            <div>
+              {playersPseudo[order.from]} gives {order.number} {order.type}{" "}
+              cards to {playersPseudo[order.to]} :{" "}
+              {order.cards.length === order.number ? "✅" : "❌"}
+            </div>
+          ))}
       </section>
-      <section>
+      <section className="exchanges">
         {giveOrder && (
           <div>
-            GIVING :{" "}
-            {giveOrder.cards.map((cardId, index) => (
-              <Card
-                cardIndex={cardId}
-                key={index}
-                selected={false}
-                handleClick={() => {}}
-              ></Card>
-            ))}
+            <div>GIVING :</div>
+            <div className="cards">
+              {giveOrder.cards.map((cardId, index) => (
+                <Card
+                  cardIndex={cardId}
+                  key={index}
+                  selected={false}
+                  handleClick={() => {}}
+                ></Card>
+              ))}
+            </div>
           </div>
         )}
         {receiveOrder && (
           <div>
-            RECEIVING :{" "}
-            {receiveOrder.cards.map((cardId, index) => (
-              <Card
-                cardIndex={cardId}
-                key={index}
-                selected={false}
-                handleClick={() => {}}
-              ></Card>
-            ))}
+            <div>RECEIVING :</div>
+            <div className="cards">
+              {receiveOrder.cards.map((cardId, index) => (
+                <Card
+                  cardIndex={cardId}
+                  key={index}
+                  selected={false}
+                  handleClick={() => {}}
+                ></Card>
+              ))}
+            </div>
           </div>
         )}
       </section>
