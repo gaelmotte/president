@@ -385,7 +385,8 @@ export const archiveCurrentGame = (): AppThunk => (dispatch, getState) => {
 export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
   const fold = selectCurrentFold(getState());
   const currentPlayer = selectCurrentPlayer(getState());
-  const playerHands = selectAdversaryHandSize;
+  const isRevolution = selectIsRevolution(getState());
+
   if (fold && currentPlayer) {
     console.log("Checking if fold is closed", fold.moves.slice(-1));
     const playerIds = selectPlayerIds(getState());
@@ -410,14 +411,15 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
       );
     } else if (
       fold.moves.length !== 0 &&
-      fold.moves.slice(-1)[0].cards[0] % 13 === 12
+      ((!isRevolution && fold.moves.slice(-1)[0].cards[0] % 13 === 12) ||
+        (isRevolution && fold.moves.slice(-1)[0].cards[0] % 13 === 0))
     ) {
       dispatch(setPlayersPassed(playerIds));
       dispatch(setFoldClosed());
       const handsize = selectAdversaryHandSize(
         fold.moves.slice(-1)[0].playerId
       )(getState());
-      console.log("Did they finish with a 2 ???", handsize);
+      console.log("Did they finish with a 2  or 3 during revo???", handsize);
 
       if (handsize !== undefined && handsize === 0) {
         dispatch(setDisqualifiedPlayer(fold.moves.slice(-1)[0].playerId));
