@@ -171,6 +171,7 @@ export const initializeGame = (
   dispatch(setStatus("starting"));
 
   dispatch(setPlayerIds(playerIds));
+  const startingPlayer = selectComputeStartingPlayer(playerIds)(getState());
 
   // ask server to deal cards if Host
   if (isHost) {
@@ -187,7 +188,7 @@ export const initializeGame = (
       setTimeout(() => {
         channel.trigger("client-game-cards-dealt", hands);
         dispatch(setPlayersHands(hands));
-        dispatch(setCurrentPlayer(pusherId));
+        dispatch(setCurrentPlayer(startingPlayer));
         if (cardEchangeOrders) {
           channel.trigger(
             "client-game-cards-to-be-exchanged",
@@ -210,7 +211,7 @@ export const initializeGame = (
       ) => {
         console.log("Received cards", data);
         dispatch(setPlayersHands(data));
-        dispatch(setCurrentPlayer(metadata.user_id));
+        dispatch(setCurrentPlayer(startingPlayer));
       }
     );
 
@@ -746,4 +747,26 @@ export const selectComputedCardExchangeOrdersFromPreviousGame = (
   console.log("computing card Exchange orders", orders);
 
   return orders;
+};
+
+export const selectComputeStartingPlayer = (playerIds: string[]) => (
+  state: RootState
+): string => {
+  if (
+    state.room.pastGames.length === 0 ||
+    !selectSamePlayersAsPreviousGame(playerIds)(state)
+  ) {
+    if (state.room.members) {
+      const host = state.room.members.find((member) => member.info.isHost);
+      if (host) {
+        return host.id;
+      }
+      throw new Error("No HOST ?!");
+    }
+    throw new Error("No Members ?!");
+  }
+
+  const { finishOrder } = state.room.pastGames.slice(-1)[0];
+
+  return finishOrder.slice(-1)[0];
 };
