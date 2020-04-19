@@ -124,6 +124,20 @@ export const gameSlice = createSlice({
     ) => {
       state.cardExchangeOrders = action.payload;
     },
+    setUpdateCardExchangeOrder: (
+      state,
+      action: PayloadAction<CardExchangeOrder>
+    ) => {
+      if (!state.cardExchangeOrders)
+        throw new Error("cannot update order if there aren't any");
+
+      const orderIndex = state.cardExchangeOrders.findIndex(
+        (order) => order.from === action.payload.from
+      );
+      if (orderIndex !== -1) {
+        state.cardExchangeOrders[orderIndex].cards = action.payload.cards;
+      }
+    },
   },
 });
 
@@ -142,6 +156,7 @@ export const {
   setDisqualifiedPlayer,
   setToggleRevolution,
   setCardExchangeOrders,
+  setUpdateCardExchangeOrder,
 } = gameSlice.actions;
 
 export const initializeGame = (
@@ -219,9 +234,30 @@ export const initializeGame = (
 
   channel.bind(
     "client-game-cards-exchanged",
-    (data: {}, metadata: { user_id: string }) => {
+    (data: CardExchangeOrder, metadata: { user_id: string }) => {
       console.log("cards exchange done", data);
-      // TODO update Card Exchange orders.
+
+      const orders = selectCardExchangeOrders(getState());
+
+      if (orders) {
+        const orderIndex = orders.findIndex(
+          (order) => order.from === metadata.user_id
+        );
+
+        if (orderIndex !== -1) {
+          const order = orders[orderIndex];
+          const updatedOrder: CardExchangeOrder = {
+            from: order.from,
+            to: order.to,
+            number: order.number,
+            type: order.type,
+            cards: data.cards,
+          };
+          console.log("giving cards");
+
+          dispatch(setUpdateCardExchangeOrder(updatedOrder));
+        }
+      }
     }
   );
 
@@ -295,6 +331,34 @@ export const playCards = (cards: number[]): AppThunk => (
   const nextPLayer = selectNextPlayer(getState());
   if (nextPLayer) {
     dispatch(setCurrentPlayer(nextPLayer));
+  }
+};
+
+export const giveCards = (cards: number[]): AppThunk => (
+  dispatch,
+  getState
+) => {
+  const channel: PusherTypes.PresenceChannel | null = getChannel();
+  if (!channel) throw new Error("Channel not initialized");
+
+  const orders = selectCardExchangeOrders(getState());
+  const playerId = selectPusherId(getState());
+  if (orders) {
+    const orderIndex = orders.findIndex((order) => order.from === playerId);
+    if (orderIndex !== -1) {
+      const order = orders[orderIndex];
+      const updatedOrder: CardExchangeOrder = {
+        from: order.from,
+        to: order.to,
+        number: order.number,
+        type: order.type,
+        cards: cards,
+      };
+      channel.trigger("client-game-cards-exchanged", updatedOrder);
+      console.log("giving cards");
+
+      dispatch(setUpdateCardExchangeOrder(updatedOrder));
+    }
   }
 };
 

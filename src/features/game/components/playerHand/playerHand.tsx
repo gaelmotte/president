@@ -5,12 +5,15 @@ import {
   selectPlayerHand,
   selectIsPlayerTurn,
   playCards,
+  giveCards,
   pass,
   selectIsSameOrNothingPlay,
   selectCurrentFold,
   startNewFold,
   selectPusherId,
   selectIsRevolution,
+  selectStatus,
+  selectCardExchangeOrders,
 } from "../../gameSlice";
 import Card from "../card/Card";
 import { compareValues, isMoveAllowed } from "../../../../services/cardsUtils";
@@ -27,6 +30,9 @@ export function PlayerHand() {
   const playerId = useSelector(selectPusherId);
   const isSameOrNothingPlay = useSelector(selectIsSameOrNothingPlay);
   const isRevolution = useSelector(selectIsRevolution);
+  const status = useSelector(selectStatus);
+  const orders = useSelector(selectCardExchangeOrders);
+  const order = orders?.find((order) => order.from === playerId);
 
   const toggleCard = useCallback(
     (cardId: number) => {
@@ -45,7 +51,24 @@ export function PlayerHand() {
         {playerId && <Adversary playerId={playerId} />}
       </div>
       <div className="buttons">
-        {isPlayerTurn && !fold && (
+        {status === "starting" && order && (
+          <button
+            onClick={() => {
+              if (order.number === selectedCards.length) {
+                dispatch(giveCards(selectedCards));
+                setSelectedCards([]);
+              } else {
+                alert("Illegal Gift");
+              }
+            }}
+          >
+            {selectedCards.length < 2
+              ? `Give ${selectedCards.length} Card`
+              : `Give ${selectedCards.length} Cards`}
+          </button>
+        )}
+
+        {status === "running" && isPlayerTurn && !fold && (
           <button
             onClick={() => {
               if (isMoveAllowed(null, selectedCards, isRevolution)) {
@@ -59,7 +82,7 @@ export function PlayerHand() {
             Start New Fold
           </button>
         )}
-        {isPlayerTurn && fold && !fold.closed && (
+        {status === "running" && isPlayerTurn && fold && !fold.closed && (
           <>
             <button
               onClick={() => {
