@@ -58,24 +58,26 @@ export function Room() {
   console.log(connectedMembers);
   return (
     <StyledRoom>
-      {isConnected && <h1>Room created by {hostPseudo}.</h1>}
-      {!isConnected && (
-        <form onSubmit={handleSubmitConnectionForm}>
-          <input
-            type="text"
-            placeholder="pseudo"
-            onChange={handlePseudoChange}
-          ></input>
-          <input type="submit" />
-        </form>
-      )}
+      <header>
+        {isConnected && <h1>Room created by {hostPseudo}.</h1>}
+        {!isConnected && (
+          <form onSubmit={handleSubmitConnectionForm}>
+            <input
+              type="text"
+              placeholder="pseudo"
+              onChange={handlePseudoChange}
+            ></input>
+            <input type="submit" />
+          </form>
+        )}
 
-      {isConnected && (
-        <>
-          Connected to the room :{" "}
-          {connectedMembers.map((member) => member.info.pseudo).join(", ")}
-        </>
-      )}
+        {isConnected && (
+          <>
+            Connected to the room :{" "}
+            {connectedMembers.map((member) => member.info.pseudo).join(", ")}
+          </>
+        )}
+      </header>
       {currentGameId && currentGamePlayerIds && (
         <Game
           gameId={currentGameId}

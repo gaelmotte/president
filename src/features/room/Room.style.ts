@@ -5,4 +5,8 @@ export default styled.div`
   flex-direction: column;
   flex: 1;
   height: 100%;
+
+  header {
+    margin-bottom: 20px;
+  }
 `;
