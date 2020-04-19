@@ -13,6 +13,14 @@ import {
 
 import { setPastGame, selectCurrentGameId } from "../room/roomSlice";
 
+type CardExchangeOrder = {
+  from: string;
+  to: string;
+  number: number;
+  type: "best" | "any";
+  cards: number[];
+};
+
 interface GameState {
   gameId: string | null;
   status: "starting" | "running" | "finished" | undefined;
@@ -23,6 +31,7 @@ interface GameState {
   playerIds: string[] | null;
   disqualifiedPlayers: string[] | null;
   isRevolution: boolean;
+  cardExchangeOrders: CardExchangeOrder[] | null;
 }
 const initialState: GameState = {
   gameId: null,
@@ -34,6 +43,7 @@ const initialState: GameState = {
   playerIds: null,
   disqualifiedPlayers: null,
   isRevolution: false,
+  cardExchangeOrders: null,
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -108,6 +118,12 @@ export const gameSlice = createSlice({
     setToggleRevolution: (state) => {
       state.isRevolution = !state.isRevolution;
     },
+    setCardExchangeOrders: (
+      state,
+      action: PayloadAction<CardExchangeOrder[]>
+    ) => {
+      state.cardExchangeOrders = action.payload;
+    },
   },
 });
 
@@ -125,6 +141,7 @@ export const {
   reset,
   setDisqualifiedPlayer,
   setToggleRevolution,
+  setCardExchangeOrders,
 } = gameSlice.actions;
 
 export const initializeGame = (
@@ -144,7 +161,10 @@ export const initializeGame = (
     console.log("Deal cards");
 
     const hands = dealCards(playerIds);
-    const cardEchangeOrders = null; // TODO select card exchange orders
+    const cardEchangeOrders = selectComputedCardExchangeOrdersFromPreviousGame(
+      playerIds
+    )(getState());
+    console.log("found oerders", cardEchangeOrders);
     const pusherId = selectPusherId(getState());
     console.log("dealing cards as ", pusherId);
     if (pusherId) {
@@ -157,7 +177,7 @@ export const initializeGame = (
             "client-game-cards-to-be-exchanged",
             cardEchangeOrders
           );
-          //dispatch corresponding actions
+          dispatch(setCardExchangeOrders(cardEchangeOrders));
         } else {
           channel.trigger("client-game-started", {});
           dispatch(setStatus("running"));
@@ -180,9 +200,9 @@ export const initializeGame = (
 
     channel.bind(
       "client-game-cards-to-be-exchanged",
-      (data: {}, metadata: { user_id: string }) => {
+      (data: CardExchangeOrder[], metadata: { user_id: string }) => {
         console.log("cards exchange starting", data);
-        // TODO, if current player is one of them, do exchange
+        dispatch(setCardExchangeOrders(data));
       }
     );
 
@@ -560,3 +580,74 @@ export const selectIsSameOrNothingPlay = (state: RootState) => {
 };
 
 export const selectIsRevolution = (state: RootState) => state.game.isRevolution;
+
+export const selectCardExchangeOrders = (state: RootState) =>
+  state.game.cardExchangeOrders;
+
+export const selectSamePlayersAsPreviousGame = (playerIds: string[]) => (
+  state: RootState
+) => {
+  if (state.room.pastGames.length === 0) return false;
+  const previousGame = state.room.pastGames.slice(-1)[0];
+
+  if (
+    previousGame.playerIds.length !== playerIds.length ||
+    previousGame.playerIds.some((playerId) => !playerIds.includes(playerId))
+  )
+    return false;
+
+  return true;
+};
+
+export const selectComputedCardExchangeOrdersFromPreviousGame = (
+  playerIds: string[]
+) => (state: RootState): CardExchangeOrder[] | null => {
+  console.log("computing card Exchange orders");
+
+  if (
+    state.room.pastGames.length === 0 ||
+    !selectSamePlayersAsPreviousGame(playerIds)(state)
+  )
+    return null;
+
+  const { finishOrder } = state.room.pastGames.slice(-1)[0];
+
+  console.log("computing card Exchange orders", finishOrder);
+
+  const orders: CardExchangeOrder[] = [];
+
+  orders.push({
+    from: finishOrder[0],
+    to: finishOrder[finishOrder.length - 1],
+    number: 2,
+    type: "any",
+    cards: [],
+  });
+  orders.push({
+    from: finishOrder[finishOrder.length - 1],
+    to: finishOrder[0],
+    number: 2,
+    type: "best",
+    cards: [],
+  });
+
+  if (finishOrder.length >= 4) {
+    orders.push({
+      from: finishOrder[1],
+      to: finishOrder[finishOrder.length - 2],
+      number: 1,
+      type: "any",
+      cards: [],
+    });
+    orders.push({
+      from: finishOrder[finishOrder.length - 2],
+      to: finishOrder[1],
+      number: 1,
+      type: "best",
+      cards: [],
+    });
+  }
+  console.log("computing card Exchange orders", orders);
+
+  return orders;
+};
