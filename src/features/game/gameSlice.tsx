@@ -13,7 +13,7 @@ import {
 
 import { setPastGame, selectCurrentGameId } from "../room/roomSlice";
 
-type CardExchangeOrder = {
+export type CardExchangeOrder = {
   from: string;
   to: string;
   number: number;
