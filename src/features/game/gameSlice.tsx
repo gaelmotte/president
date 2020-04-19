@@ -837,6 +837,8 @@ export const selectComputePreviousFinishEmoji = (playerId: string) => (
     !state.room ||
     !state.room.pastGames ||
     !state.game.playerIds ||
+    !state.room.pastGames ||
+    state.room.pastGames.length === 0 ||
     !selectSamePlayersAsPreviousGame(state.game.playerIds)
   )
     return;
