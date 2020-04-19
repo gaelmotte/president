@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import {
@@ -45,28 +45,40 @@ export function PlayerHand() {
     [setSelectedCards, selectedCards]
   );
 
+  useEffect(() => {
+    if (hand && order && order.type === "best" && order.cards.length === 0) {
+      const bestCards = hand.slice().sort(compareValues).slice(-order.number);
+      dispatch(giveCards(bestCards));
+    }
+
+    return () => {};
+  }, [order, dispatch, hand]);
+
   return (
     <StyledHand>
       <div className="playerInfo">
         {playerId && <Adversary playerId={playerId} />}
       </div>
       <div className="buttons">
-        {status === "starting" && order && (
-          <button
-            onClick={() => {
-              if (order.number === selectedCards.length) {
-                dispatch(giveCards(selectedCards));
-                setSelectedCards([]);
-              } else {
-                alert("Illegal Gift");
-              }
-            }}
-          >
-            {selectedCards.length < 2
-              ? `Give ${selectedCards.length} Card`
-              : `Give ${selectedCards.length} Cards`}
-          </button>
-        )}
+        {status === "starting" &&
+          order &&
+          order.cards.length === 0 &&
+          order.type === "any" && (
+            <button
+              onClick={() => {
+                if (order.number === selectedCards.length) {
+                  dispatch(giveCards(selectedCards));
+                  setSelectedCards([]);
+                } else {
+                  alert("Illegal Gift");
+                }
+              }}
+            >
+              {selectedCards.length < 2
+                ? `Give ${selectedCards.length} Card`
+                : `Give ${selectedCards.length} Cards`}
+            </button>
+          )}
 
         {status === "running" && isPlayerTurn && !fold && (
           <button
