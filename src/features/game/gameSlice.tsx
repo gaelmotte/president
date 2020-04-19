@@ -22,6 +22,7 @@ interface GameState {
   finishedPlayers: string[] | null;
   playerIds: string[] | null;
   disqualifiedPlayers: string[] | null;
+  isRevolution: boolean;
 }
 const initialState: GameState = {
   gameId: null,
@@ -32,6 +33,7 @@ const initialState: GameState = {
   finishedPlayers: null,
   playerIds: null,
   disqualifiedPlayers: null,
+  isRevolution: false,
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -103,6 +105,9 @@ export const gameSlice = createSlice({
     setPlayersPassed: (state, action: PayloadAction<string[]>) => {
       if (state.currentFold) state.currentFold.passedPlayers = action.payload;
     },
+    setToggleRevolution: (state) => {
+      state.isRevolution = !state.isRevolution;
+    },
   },
 });
 
@@ -119,6 +124,7 @@ export const {
   setPlayersPassed,
   reset,
   setDisqualifiedPlayer,
+  setToggleRevolution,
 } = gameSlice.actions;
 
 export const initializeGame = (
@@ -168,6 +174,8 @@ export const initializeGame = (
     (data: any, metadata: { user_id: string }) => {
       dispatch(setPlayedMove({ playerId: metadata.user_id, cards: data }));
       dispatch(checkClosedFold());
+      console.log("playing cards", data);
+      if (data.length === 4) dispatch(setToggleRevolution());
       const nextPLayer = selectNextPlayer(getState());
       if (nextPLayer) {
         dispatch(setCurrentPlayer(nextPLayer));
@@ -197,6 +205,7 @@ export const initializeGame = (
       const currentPlayer = selectCurrentPlayer(getState());
       if (!currentPlayer) throw "No current PLayer";
 
+      if (data.length === 4) dispatch(setToggleRevolution());
       dispatch(setPlayedMove({ playerId: currentPlayer, cards: data }));
       dispatch(checkClosedFold());
 
@@ -221,6 +230,8 @@ export const playCards = (cards: number[]): AppThunk => (
   const currentPlayer = selectCurrentPlayer(getState());
   if (!currentPlayer) throw "No current PLayer";
 
+  console.log("playing cards", cards);
+  if (cards.length === 4) dispatch(setToggleRevolution());
   dispatch(setPlayedMove({ playerId: currentPlayer, cards }));
   dispatch(checkClosedFold());
 
@@ -262,6 +273,7 @@ export const startNewFold = (cards: number[]): AppThunk => (
   const currentPlayer = selectCurrentPlayer(getState());
   if (!currentPlayer) throw "No current PLayer";
 
+  if (cards.length === 4) dispatch(setToggleRevolution());
   dispatch(setPlayedMove({ playerId: currentPlayer, cards }));
 
   dispatch(checkClosedFold());
@@ -497,3 +509,5 @@ export const selectIsSameOrNothingPlay = (state: RootState) => {
     state.game.currentFold.moves.slice(-1)[0].cards.length !== 0
   );
 };
+
+export const selectIsRevolution = (state: RootState) => state.game.isRevolution;

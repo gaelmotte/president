@@ -51,7 +51,11 @@ export const getFigure = (cardIndex: number) => figures[cardIndex % 13];
 export const isAllSameFigure = (cards: number[]) =>
   new Set(cards.map((card) => getFigure(card))).size <= 1;
 
-export const isMoveAllowed = (fold: Fold | null, cards: number[]) => {
+export const isMoveAllowed = (
+  fold: Fold | null,
+  cards: number[],
+  isRevolution: boolean
+) => {
   const allSameFigure = isAllSameFigure(cards);
 
   if (!fold) {
@@ -91,7 +95,10 @@ export const isMoveAllowed = (fold: Fold | null, cards: number[]) => {
     return (
       cards.length === fold.cardsPerPlay &&
       (fold.moves.slice(-1)[0].cards.length === 0 ||
-        cards[0] % 13 >= fold.moves.slice(-1)[0].cards[0] % 13)
+        (cards[0] % 13 >= fold.moves.slice(-1)[0].cards[0] % 13 &&
+          !isRevolution) ||
+        (cards[0] % 13 <= fold.moves.slice(-1)[0].cards[0] % 13 &&
+          isRevolution))
     );
   }
 };
