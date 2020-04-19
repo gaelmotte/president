@@ -10,6 +10,7 @@ import {
   selectFinishedPlayers,
   selectPassedPlayers,
   selectComputeFinishEmoji,
+  selectComputePreviousFinishEmoji,
 } from "../../gameSlice";
 
 export default ({ playerId }: { playerId: string }) => {
@@ -19,13 +20,18 @@ export default ({ playerId }: { playerId: string }) => {
   const isFinished = useSelector(selectFinishedPlayers)?.includes(playerId);
   const hasPassed = useSelector(selectPassedPlayers)?.includes(playerId);
   const finishEmoji = useSelector(selectComputeFinishEmoji(playerId));
+  const previousFinishEmoji = useSelector(
+    selectComputePreviousFinishEmoji(playerId)
+  );
   return (
     <StyledAdversary className={classNames({ isPlaying })}>
       {pseudo}
       <br />
       {handSize} cards.
       <br />
-      {finishEmoji && <>{finishEmoji}</>}
+      {previousFinishEmoji && <>{previousFinishEmoji}</>}
+      {finishEmoji && previousFinishEmoji && <> ➡ {finishEmoji}</>}
+      {finishEmoji && !previousFinishEmoji && <>{finishEmoji}</>}
       {hasPassed && <>🙅‍♂️</>}
     </StyledAdversary>
   );

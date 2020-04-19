@@ -829,3 +829,31 @@ export const selectComputeFinishEmoji = (playerId: string) => (
     }
   }
 };
+
+export const selectComputePreviousFinishEmoji = (playerId: string) => (
+  state: RootState
+) => {
+  if (
+    !state.room ||
+    !state.room.pastGames ||
+    !state.game.playerIds ||
+    !selectSamePlayersAsPreviousGame(state.game.playerIds)
+  )
+    return;
+
+  const previousFinishIndex = state.room.pastGames
+    .slice(-1)[0]
+    .playerIds?.findIndex((p) => p === playerId);
+  const nbPlayers = state.game.playerIds.length;
+  if (
+    nbPlayers === 2 ||
+    nbPlayers === 3 ||
+    nbPlayers === 4 ||
+    nbPlayers === 5 ||
+    nbPlayers === 6
+  ) {
+    if (previousFinishIndex !== undefined && previousFinishIndex !== -1) {
+      return finishEmoji[nbPlayers].slice()[previousFinishIndex];
+    }
+  }
+};
