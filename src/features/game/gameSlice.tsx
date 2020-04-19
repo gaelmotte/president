@@ -160,6 +160,7 @@ export const initializeGame = (
           //dispatch corresponding actions
         } else {
           channel.trigger("client-game-started", {});
+          dispatch(setStatus("running"));
         }
       }, 1000);
     }
@@ -186,22 +187,23 @@ export const initializeGame = (
     );
 
     channel.bind(
-      "client-game-cards-exchanged",
-      (data: {}, metadata: { user_id: string }) => {
-        console.log("cards exchange done", data);
-        // TODO update Card Exchange orders.
-      }
-    );
-
-    channel.bind(
       "client-game-started",
       (data: {}, metadata: { user_id: string }) => {
         console.log("cards exchange done", data);
         // TODO update hands based on what was exchanged for every players.
         // TODO set status running
+        dispatch(setStatus("running"));
       }
     );
   }
+
+  channel.bind(
+    "client-game-cards-exchanged",
+    (data: {}, metadata: { user_id: string }) => {
+      console.log("cards exchange done", data);
+      // TODO update Card Exchange orders.
+    }
+  );
 
   // set up event sto watch
   channel.bind(
