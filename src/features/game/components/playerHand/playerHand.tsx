@@ -10,6 +10,7 @@ import {
   selectCurrentFold,
   startNewFold,
   selectPusherId,
+  selectIsRevolution,
 } from "../../gameSlice";
 import Card from "../card/Card";
 import { compareValues, isMoveAllowed } from "../../../../services/cardsUtils";
@@ -25,6 +26,7 @@ export function PlayerHand() {
   const fold = useSelector(selectCurrentFold);
   const playerId = useSelector(selectPusherId);
   const isSameOrNothingPlay = useSelector(selectIsSameOrNothingPlay);
+  const isRevolution = useSelector(selectIsRevolution);
 
   const toggleCard = useCallback(
     (cardId: number) => {
@@ -46,7 +48,7 @@ export function PlayerHand() {
         {isPlayerTurn && !fold && (
           <button
             onClick={() => {
-              if (isMoveAllowed(null, selectedCards)) {
+              if (isMoveAllowed(null, selectedCards, isRevolution)) {
                 dispatch(startNewFold(selectedCards));
                 setSelectedCards([]);
               } else {
@@ -61,7 +63,7 @@ export function PlayerHand() {
           <>
             <button
               onClick={() => {
-                if (isMoveAllowed(fold, selectedCards)) {
+                if (isMoveAllowed(fold, selectedCards, isRevolution)) {
                   dispatch(playCards(selectedCards));
                   setSelectedCards([]);
                 } else {
