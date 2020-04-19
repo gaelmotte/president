@@ -107,8 +107,12 @@ export function PlayerHand() {
               }}
             >
               {selectedCards.length < 2
-                ? `Play ${selectedCards.length} Card`
-                : `Play ${selectedCards.length} Cards`}
+                ? `Play ${selectedCards.length} Card. ${
+                    isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
+                  }`
+                : `Play ${selectedCards.length} Cards. ${
+                    isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
+                  }`}
             </button>
             {!isSameOrNothingPlay && (
               <button
