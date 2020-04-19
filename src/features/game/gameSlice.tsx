@@ -792,3 +792,40 @@ export const selectComputeStartingPlayer = (playerIds: string[]) => (
 
   return finishOrder.slice(-1)[0];
 };
+
+export const finishEmoji = Object.freeze({
+  2: ["🎖", "💩"],
+  3: ["🎖", "👐", "💩"],
+  4: ["🎖", "🥈", "🖕", "💩"],
+  5: ["🎖", "🥈", "👐", "🖕", "💩"],
+  6: ["🎖", "🥈", "👐", "👐", "🖕", "💩"],
+});
+export const selectComputeFinishEmoji = (playerId: string) => (
+  state: RootState
+) => {
+  if (!state.game || !state.game.playerIds) return;
+  const disqualifiedIndex = state.game.disqualifiedPlayers?.findIndex(
+    (disqualifiedPlayer) => disqualifiedPlayer === playerId
+  );
+  const finishedIndex = state.game.finishedPlayers
+    ?.filter(
+      (finishedPlayer) =>
+        !state.game.disqualifiedPlayers?.includes(finishedPlayer)
+    )
+    .findIndex((finisheddPlayer) => finisheddPlayer === playerId);
+
+  const nbPlayers = state.game.playerIds.length;
+  if (
+    nbPlayers === 2 ||
+    nbPlayers === 3 ||
+    nbPlayers === 4 ||
+    nbPlayers === 5 ||
+    nbPlayers === 6
+  ) {
+    if (disqualifiedIndex !== undefined && disqualifiedIndex !== -1) {
+      return finishEmoji[nbPlayers].slice().reverse()[disqualifiedIndex];
+    } else if (finishedIndex !== undefined && finishedIndex !== -1) {
+      return finishEmoji[nbPlayers].slice()[finishedIndex];
+    }
+  }
+};
