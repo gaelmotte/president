@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import * as PusherTypes from "pusher-js";
+import { cloneDeep } from "lodash";
 
 import { AppThunk, RootState } from "../../app/store";
 
@@ -194,7 +195,7 @@ export const initializeGame = (
           );
           dispatch(setCardExchangeOrders(cardEchangeOrders));
         } else {
-          channel.trigger("client-game-started", {});
+          channel.trigger("client-game-started", hands);
           dispatch(setStatus("running"));
         }
       }, 1000);
@@ -223,10 +224,14 @@ export const initializeGame = (
 
     channel.bind(
       "client-game-started",
-      (data: {}, metadata: { user_id: string }) => {
+      (
+        data: { [playerId: string]: number[] },
+        metadata: { user_id: string }
+      ) => {
         console.log("cards exchange done", data);
         // TODO update hands based on what was exchanged for every players.
         // TODO set status running
+        dispatch(setPlayersHands(data));
         dispatch(setStatus("running"));
       }
     );
@@ -308,6 +313,31 @@ export const initializeGame = (
       }
     }
   );
+};
+
+export const startGame = (): AppThunk => (dispatch, getState) => {
+  const channel: PusherTypes.PresenceChannel | null = getChannel();
+  if (!channel) throw new Error("Channel not initialized");
+
+  // if orders are ready, merge orders and players hands,
+  const hands = getState().game.playersHands;
+  const orders = getState().game.cardExchangeOrders;
+
+  if (!orders || orders.some((order) => order.cards.length !== order.number))
+    throw new Error("Cannot Start Game if orders are not set");
+
+  const mutableHands = cloneDeep(hands);
+  orders.forEach((order) => {
+    // find impacted hands and modify them.
+    mutableHands[order.from] = mutableHands[order.from].filter(
+      (cardId) => !order.cards.includes(cardId)
+    );
+    mutableHands[order.to].push(...order.cards);
+  });
+
+  channel.trigger("client-game-started", mutableHands);
+  dispatch(setPlayersHands(mutableHands));
+  dispatch(setStatus("running"));
 };
 
 export const playCards = (cards: number[]): AppThunk => (

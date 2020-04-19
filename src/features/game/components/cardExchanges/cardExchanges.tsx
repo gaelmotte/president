@@ -4,9 +4,13 @@ import classNames from "classnames";
 import Card from "../card/Card";
 
 import StyledCardExchanges from "./cardExchanges.style";
-import { useSelector } from "react-redux";
-import { selectCardExchangeOrders, selectPusherId } from "../../gameSlice";
-import { selectPlayersPseudo } from "../../../room/roomSlice";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  selectCardExchangeOrders,
+  selectPusherId,
+  startGame,
+} from "../../gameSlice";
+import { selectPlayersPseudo, selectIsHost } from "../../../room/roomSlice";
 
 export default () => {
   const orders = useSelector(selectCardExchangeOrders);
@@ -15,6 +19,20 @@ export default () => {
 
   const giveOrder = orders?.find((order) => order.from === playerId);
   const receiveOrder = orders?.find((order) => order.to === playerId);
+
+  const isHost = useSelector(selectIsHost);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (orders?.every((order) => order.cards.length === order.number)) {
+      const timerId = setTimeout(() => {
+        dispatch(startGame());
+      }, 3000);
+      return () => {
+        clearTimeout(timerId);
+      };
+    }
+  }, [orders]);
 
   return (
     <StyledCardExchanges>
