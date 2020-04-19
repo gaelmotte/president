@@ -16,6 +16,7 @@ import { setCurrentGame, selectConnectedMembers } from "../room/roomSlice";
 
 import { PlayerHand } from "./components/playerHand/playerHand";
 import Fold from "./components/fold/Fold";
+import CardExchanges from "./components/cardExchanges/cardExchanges";
 
 import StyledGame from "./Game.style";
 import Adversary from "./components/adversary/Adversary";
@@ -72,11 +73,6 @@ export function Game({
 
   return (
     <StyledGame>
-      <header>
-        <h2>
-          {gameId} - {status}
-        </h2>
-      </header>
       {missingPlayer && <h3>Manche Annulée - Joueur déconnecté</h3>}
       <section>
         {finishedPlayers && finishedPlayers.length > 0 && (
@@ -101,7 +97,8 @@ export function Game({
               <Adversary playerId={playerId} key={playerId} />
             ))}
         </div>
-        <Fold />
+        {status === "starting" && <CardExchanges />}
+        {status === "running" && <Fold />}
       </section>
       <PlayerHand />
     </StyledGame>

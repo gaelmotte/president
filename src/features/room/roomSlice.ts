@@ -230,6 +230,16 @@ export const selectPlayerPseudo = (playerId: string | undefined) => (
     ? state.room.members.find((member) => member.id === playerId)?.info.pseudo
     : undefined;
 
+export const selectPlayersPseudo = (state: RootState) => {
+  return state.room.members.reduce<{ [playerId: string]: string }>(
+    (acc: { [playerId: string]: string }, member: Member) => {
+      acc[member.id] = member.info.pseudo;
+      return acc;
+    },
+    {}
+  );
+};
+
 export const selectPreviousGamePlayers = (state: RootState) => {
   if (state.room.pastGames.length === 0) return null;
   return state.room.pastGames.slice(-1)[0].playerIds;

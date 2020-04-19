@@ -21,6 +21,7 @@ import {
   selectPlayerPseudo,
   selectPreviousGamePlayers,
 } from "./roomSlice";
+import { selectSamePlayersAsPreviousGame } from "../game/gameSlice";
 
 export function Room() {
   const connectedMembers = useSelector(selectConnectedMembers);
@@ -31,6 +32,9 @@ export function Room() {
   const hostId = useSelector(selectHostId);
   const hostPseudo = useSelector(selectPlayerPseudo(hostId));
   const previousGamePlayers = useSelector(selectPreviousGamePlayers);
+  const isSamePlayers = useSelector(
+    selectSamePlayersAsPreviousGame(connectedMembers.map((member) => member.id))
+  );
   const dispatch = useDispatch();
   const {
     params: { roomId },
@@ -79,10 +83,11 @@ export function Room() {
           playerIds={currentGamePlayerIds}
         />
       )}
-      {!currentGameId && isHost && !previousGamePlayers && (
+      {!currentGameId && isHost && !isSamePlayers && (
         <>
           <h2>Start a game</h2>
           Starting a game for all the connected members for that first game.
+          (players changed or first game)
           <button
             onClick={() =>
               dispatch(
@@ -95,10 +100,10 @@ export function Room() {
         </>
       )}
 
-      {!currentGameId && isHost && previousGamePlayers && (
+      {!currentGameId && isHost && isSamePlayers && (
         <>
           <h2>Start a game</h2>
-          Starting a game for all the connected members for that first game.
+          Starting a game with card exchange since players are the same
           <button
             onClick={() =>
               dispatch(
