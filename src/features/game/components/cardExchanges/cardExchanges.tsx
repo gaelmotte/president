@@ -33,7 +33,7 @@ export default () => {
       <section>
         {giveOrder && (
           <div>
-            GIVEN :{" "}
+            GIVING :{" "}
             {giveOrder.cards.map((cardId, index) => (
               <Card
                 cardIndex={cardId}
@@ -46,7 +46,7 @@ export default () => {
         )}
         {receiveOrder && (
           <div>
-            RECEIVED :{" "}
+            RECEIVING :{" "}
             {receiveOrder.cards.map((cardId, index) => (
               <Card
                 cardIndex={cardId}
