@@ -113,4 +113,5 @@ export type Fold = {
   cardsPerPlay: number;
   passedPlayers: string[];
   closed: boolean;
+  foldWinner: string | null;
 };
