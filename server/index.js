@@ -22,6 +22,8 @@ let pusher = new Pusher({
 
 const PORT = process.env.PORT || 5000;
 
+const avatarEmojis = ["🤡", "😈", "🤠", "👽", "🤖", "🎃", "👾", "💀"];
+
 express()
   .use(cors())
   .use(express.static(path.join(__dirname, "..", "build")))
@@ -41,6 +43,11 @@ express()
         if (response.statusCode === 200) {
           var result = JSON.parse(response.body);
           var users = result.users;
+          const usedAvatars = users.map((user) => user.user_info.avatar);
+
+          const availableAvatars = avatarEmojis.filter(
+            (it) => !usedAvatars.includes(it)
+          );
 
           let presenceData = {
             user_id: uuid.v4(),
@@ -48,6 +55,12 @@ express()
               pseudo: pseudo,
               isHost: users.length === 0,
               joinedAt: new Date().getTime(),
+              avatar:
+                availableAvatars.length === 0
+                  ? "😀"
+                  : availableAvatars[
+                      Math.floor(Math.random() * availableAvatars.length)
+                    ],
             },
           };
           let auth = pusher.authenticate(socketId, channel, presenceData);
