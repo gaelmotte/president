@@ -3,10 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import classNames from "classnames";
 
 import StyledAdversary from "./Adversary.style";
-import {
-  selectPlayerPseudo,
-  selectPlayerAvatar,
-} from "../../../room/roomSlice";
+import { selectPlayerPseudo } from "../../../room/roomSlice";
 import {
   selectCurrentPlayer,
   selectAdversaryHandSize,
@@ -18,7 +15,6 @@ import {
 
 export default ({ playerId }: { playerId: string }) => {
   const pseudo = useSelector(selectPlayerPseudo(playerId));
-  const avatar = useSelector(selectPlayerAvatar(playerId));
   const isPlaying = useSelector(selectCurrentPlayer) === playerId;
   const handSize = useSelector(selectAdversaryHandSize(playerId));
   const isFinished = useSelector(selectFinishedPlayers)?.includes(playerId);
@@ -29,7 +25,6 @@ export default ({ playerId }: { playerId: string }) => {
   );
   return (
     <StyledAdversary className={classNames({ isPlaying })}>
-      {avatar}
       {pseudo}
       <br />
       {handSize} cards.

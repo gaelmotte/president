@@ -31,7 +31,6 @@ type Member = {
     pseudo: string;
     isHost: boolean;
     joinedAt: number;
-    avatar: string;
   };
 };
 
@@ -229,13 +228,6 @@ export const selectPlayerPseudo = (playerId: string | undefined) => (
 ) =>
   playerId
     ? state.room.members.find((member) => member.id === playerId)?.info.pseudo
-    : undefined;
-
-export const selectPlayerAvatar = (playerId: string | undefined) => (
-  state: RootState
-) =>
-  playerId
-    ? state.room.members.find((member) => member.id === playerId)?.info.avatar
     : undefined;
 
 export const selectPlayersPseudo = (state: RootState) => {
