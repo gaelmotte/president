@@ -19,7 +19,7 @@ import Fold from "./components/fold/Fold";
 import CardExchanges from "./components/cardExchanges/cardExchanges";
 
 import StyledGame from "./Game.style";
-import Adversary from "./components/adversary/Adversary";
+import PlayerCartouche from "./components/adversary/PlayerCartouche";
 
 export function Game({
   gameId,
@@ -75,19 +75,16 @@ export function Game({
     <StyledGame>
       {missingPlayer && <h3>Manche Annulée - Joueur déconnecté</h3>}
       <section className="gameTable">
-        <div
-          className={classNames("adversaries", {
-            players4: playerIds.length === 4,
-            players5: playerIds.length === 5,
-            players6: playerIds.length === 6,
-            playersNA: ![4, 5, 6].includes(playerIds.length),
-          })}
-        >
-          {adversaries &&
-            adversaries.map((playerId) => (
-              <Adversary playerId={playerId} key={playerId} />
-            ))}
-        </div>
+        {adversaries &&
+          adversaries.map((playerId, index) => (
+            <PlayerCartouche
+              playerId={playerId}
+              key={playerId}
+              playerIndex={index}
+              playerNumber={adversaries.length}
+            />
+          ))}
+
         {status === "starting" && <CardExchanges />}
         {status === "running" && <Fold />}
       </section>

@@ -24,37 +24,5 @@ export default styled.div`
     min-height: 0;
     padding: 10rem 7rem 0rem 7rem;
     position: relative;
-
-    .adversaries {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-
-      &.playersNA {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-evenly;
-      }
-
-      &.players4 {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-evenly;
-      }
-
-      &.players5 {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-evenly;
-      }
-
-      &.players6 {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-evenly;
-      }
-    }
   }
 `;
