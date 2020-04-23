@@ -17,7 +17,7 @@ import {
 } from "../../gameSlice";
 import Card from "../card/Card";
 import { compareValues, isMoveAllowed } from "../../../../services/cardsUtils";
-import Adversary from "../adversary/Adversary";
+import Adversary from "../PlayerCartouche/PlayerCartouche";
 
 import StyledHand, { StyledSlotInHand } from "./playerHand.style";
 

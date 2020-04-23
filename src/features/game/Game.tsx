@@ -19,7 +19,7 @@ import Fold from "./components/fold/Fold";
 import CardExchanges from "./components/cardExchanges/cardExchanges";
 
 import StyledGame from "./Game.style";
-import PlayerCartouche from "./components/adversary/PlayerCartouche";
+import PlayerCartouche from "./components/PlayerCartouche/PlayerCartouche";
 
 export function Game({
   gameId,
