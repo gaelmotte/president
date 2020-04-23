@@ -8,7 +8,7 @@ export default styled.div`
   justify-content: center;
 
   .exchanges {
-    margin-top: 20px;
+    margin-top: 1.5vmin;
     display: flex;
     flex-direction: row;
 

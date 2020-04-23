@@ -13,16 +13,16 @@ export default styled.div`
     left: 20%;
     transform: rotate(-45deg);
     color: RED;
-    border: solid red 3px;
-    padding: 5px;
-    font-size: 6em;
+    border: solid red 0.2rem;
+    padding: 0.5rem;
+    font-size: 6rem;
   }
 
   .gameTable {
     flex: 1;
     flex-shrink: 1;
     min-height: 0;
-    padding: 100px 70px 0px 70px;
+    padding: 10rem 7rem 0rem 7rem;
     position: relative;
 
     .adversaries {

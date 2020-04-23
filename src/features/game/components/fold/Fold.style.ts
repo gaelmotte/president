@@ -14,12 +14,14 @@ export default styled.div`
   }
   h3 {
     position: absolute;
-    top: 35%;
-    left: 35%;
+    top: 50%;
+    left: 50%;
+    margin-left: -50px;
+    margin-top: -50px;
     transform: rotate(-45deg);
     color: RED;
-    border: solid red 3px;
-    padding: 5px;
-    font-size: 6em;
+    border: solid red 0.2vmin;
+    padding: 0.5vmin;
+    font-size: 6vmin;
   }
 `;

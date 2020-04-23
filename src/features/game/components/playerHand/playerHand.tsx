@@ -19,7 +19,7 @@ import Card from "../card/Card";
 import { compareValues, isMoveAllowed } from "../../../../services/cardsUtils";
 import Adversary from "../adversary/Adversary";
 
-import StyledHand from "./playerHand.style";
+import StyledHand, { StyledSlotInHand } from "./playerHand.style";
 
 export function PlayerHand() {
   const hand = useSelector(selectPlayerHand);
@@ -59,9 +59,6 @@ export function PlayerHand() {
 
   return (
     <StyledHand>
-      <div className="playerInfo">
-        {playerId && <Adversary playerId={playerId} />}
-      </div>
       <div className="buttons">
         {status === "starting" &&
           order &&
@@ -133,15 +130,20 @@ export function PlayerHand() {
 
       <section className="cards">
         {sortedHand &&
-          sortedHand.map((cardId) => (
-            <Card
-              cardIndex={cardId}
-              key={cardId}
-              selected={selectedCards.includes(cardId)}
-              handleClick={toggleCard}
-            ></Card>
+          sortedHand.map((cardId, index) => (
+            <StyledSlotInHand slotIndex={index} slotNumber={sortedHand.length}>
+              <Card
+                cardIndex={cardId}
+                key={cardId}
+                selected={selectedCards.includes(cardId)}
+                handleClick={toggleCard}
+              ></Card>
+            </StyledSlotInHand>
           ))}
       </section>
+      <div className="playerInfo">
+        {playerId && <Adversary playerId={playerId} />}
+      </div>
     </StyledHand>
   );
 }

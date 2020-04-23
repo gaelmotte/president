@@ -10,4 +10,5 @@ body {
   background-image: radial-gradient(#0000, #000),
     url(https://www.transparenttextures.com/patterns/swirl.png);
   font-size: 1vmin;
+  overflow: hidden;
 }

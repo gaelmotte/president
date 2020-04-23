@@ -8,7 +8,7 @@ export default styled.div`
   }
 
   .buttons {
-    height: 50px;
+    height: 5vmin;
 
     display: flex;
     flex-direction: row;
@@ -16,13 +16,35 @@ export default styled.div`
     align-items: center;
 
     button {
-      height: 30px;
-      margin: 10px;
+      height: 3vmin;
+      margin: 1vmin;
     }
   }
   .cards {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
+    position: relative;
+    height: 23vmin;
+    filter: drop-shadow(0 0 1vmin gold);
   }
+`;
+
+export const StyledSlotInHand = styled.div<{
+  slotIndex: number;
+  slotNumber: number;
+}>`
+  transform-origin: 25% 200%;
+  position: absolute;
+  left: 50%;
+  margin-left: -50px;
+  z-index: ${(props) => props.slotIndex};
+  transform: rotate(
+    ${(props) => {
+      const anglePerCard = Math.min(100 / props.slotNumber, 15);
+      return (
+        (100 - anglePerCard * props.slotNumber) / 2 -
+        50 +
+        +anglePerCard / 2 +
+        props.slotIndex * anglePerCard
+      );
+    }}deg
+  );
 `;

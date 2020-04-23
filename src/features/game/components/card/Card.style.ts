@@ -2,8 +2,8 @@ import styled from "styled-components";
 
 export default styled.div`
   overflow: hidden;
-  border-radius: 5px 0 0 5px;
-  margin-right: -5px;
+  border-radius: 0.5vmin 0 0 0.5vmin;
+  margin-right: -0.5vmin;
 
   :hover {
     overflow: visible;
@@ -16,12 +16,15 @@ export default styled.div`
   }
 
   div {
-    width: 60px;
-    height: 90px;
+    width: 15vmin;
+    width: 15vmin;
+    height: 23vmin;
     border: solid 1px black;
     background-color: #ccc;
-    border-radius: 5px;
+    border-radius: 1vmin;
     text-align: left;
+    font-size: 3vmin;
+    padding-left: 0.5vmin;
   }
   .♥️ {
     color: red;
@@ -36,6 +39,6 @@ export default styled.div`
     color: black;
   }
   .selected {
-    background-color: green;
+    transform: translateY(-10%);
   }
 `;
