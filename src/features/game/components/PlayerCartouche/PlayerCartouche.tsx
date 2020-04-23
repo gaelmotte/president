@@ -17,10 +17,12 @@ export default ({
   playerId,
   playerIndex,
   playerNumber,
+  isSelf = false,
 }: {
   playerId: string;
   playerIndex?: number;
   playerNumber?: number;
+  isSelf?: boolean;
 }) => {
   const pseudo = useSelector(selectPlayerPseudo(playerId));
   const isPlaying = useSelector(selectCurrentPlayer) === playerId;
@@ -37,24 +39,21 @@ export default ({
       playerId={playerId}
       playerIndex={playerIndex}
       playerNumber={playerNumber}
+      isSelf={isSelf}
     >
       <div className="avatar">
         <span role="img" aria-label="player avatar">
           😀
         </span>
-        <span className="handsize"> {handSize} </span>
       </div>
-      <div className="details">
-        <div className="pseudo">
-          {pseudo}
-          {previousFinishEmoji && <>{previousFinishEmoji}</>}
-        </div>
-        <div className="finishpass">
-          {finishEmoji && previousFinishEmoji && <> ➡ {finishEmoji}</>}{" "}
-          {finishEmoji && !previousFinishEmoji && <>{finishEmoji}</>}
-          {hasPassed && <>🙅‍♂️</>}
-        </div>
-      </div>
+      <span className="details">
+        {hasPassed && <>🙅‍♂️</>}
+        {pseudo}
+        {previousFinishEmoji && <>{previousFinishEmoji}</>}
+        {finishEmoji && previousFinishEmoji && <> ➡ {finishEmoji}</>}
+        {finishEmoji && !previousFinishEmoji && <>{finishEmoji}</>}
+      </span>
+      <span className="handsize"> {handSize} </span>
     </StyledPlayerCartouche>
   );
 };

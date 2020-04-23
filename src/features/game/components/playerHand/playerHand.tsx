@@ -141,9 +141,8 @@ export function PlayerHand() {
             </StyledSlotInHand>
           ))}
       </section>
-      <div className="playerInfo">
-        {playerId && <Adversary playerId={playerId} />}
-      </div>
+
+      {playerId && <Adversary playerId={playerId} isSelf={true} />}
     </StyledHand>
   );
 }
