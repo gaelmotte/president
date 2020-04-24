@@ -16,12 +16,19 @@ export default styled.div`
     position: absolute;
     top: 50%;
     left: 50%;
-    margin-left: -50px;
-    margin-top: -50px;
-    transform: rotate(-45deg);
+
+    transform: translate(-50%, -50%) rotate(-45deg);
     color: RED;
     border: solid red 0.2vmin;
     padding: 0.5vmin;
     font-size: 6vmin;
+  }
+
+  .glows {
+    background-color: black;
+    filter: drop-shadow(0 0 1vmin gold);
+    border-radius: 1vmin;
+    font-size: 3vmin;
+    margin: 1vmin;
   }
 `;

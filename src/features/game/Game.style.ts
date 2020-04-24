@@ -9,9 +9,10 @@ export default styled.div`
 
   h3 {
     position: absolute;
-    top: 20%;
-    left: 20%;
-    transform: rotate(-45deg);
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%) rotate(-45deg);
     color: RED;
     border: solid red 0.2rem;
     padding: 0.5rem;
@@ -22,7 +23,9 @@ export default styled.div`
     flex: 1;
     flex-shrink: 1;
     min-height: 0;
-    padding: 10rem 7rem 0rem 7rem;
     position: relative;
+
+    justify-content: center;
+    display: flex;
   }
 `;

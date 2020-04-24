@@ -24,7 +24,6 @@ export default styled.div`
     filter: drop-shadow(0 0 1vmin gold);
     border-radius: 1vmin;
     font-size: 3vmin;
-    margin: 1vmin;
 
     &::after {
       content: " ";
@@ -40,6 +39,18 @@ export default styled.div`
     button {
       height: 3vmin;
       margin: 1vmin;
+
+      background-color: black;
+      border: none;
+      color: white;
+
+      text-align: center;
+
+      text-decoration: none;
+
+      box-shadow: inset 0.15vmin 0.15vmin 1vmin gold;
+
+      cursor: pointer;
     }
   }
   .cards {
