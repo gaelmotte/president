@@ -17,9 +17,9 @@ import {
 } from "../../gameSlice";
 import Card from "../card/Card";
 import { compareValues, isMoveAllowed } from "../../../../services/cardsUtils";
-import Adversary from "../adversary/Adversary";
+import Adversary from "../PlayerCartouche/PlayerCartouche";
 
-import StyledHand from "./playerHand.style";
+import StyledHand, { StyledSlotInHand } from "./playerHand.style";
 
 export function PlayerHand() {
   const hand = useSelector(selectPlayerHand);
@@ -59,14 +59,11 @@ export function PlayerHand() {
 
   return (
     <StyledHand>
-      <div className="playerInfo">
-        {playerId && <Adversary playerId={playerId} />}
-      </div>
-      <div className="buttons">
-        {status === "starting" &&
-          order &&
-          order.cards.length === 0 &&
-          order.type === "any" && (
+      {status === "starting" &&
+        order &&
+        order.cards.length === 0 &&
+        order.type === "any" && (
+          <div className="actions">
             <button
               onClick={() => {
                 if (order.number === selectedCards.length) {
@@ -81,9 +78,11 @@ export function PlayerHand() {
                 ? `Give ${selectedCards.length} Card`
                 : `Give ${selectedCards.length} Cards`}
             </button>
-          )}
+          </div>
+        )}
 
-        {status === "running" && isPlayerTurn && !fold && (
+      {status === "running" && isPlayerTurn && !fold && (
+        <div className="actions">
           <button
             onClick={() => {
               if (isMoveAllowed(null, selectedCards, isRevolution)) {
@@ -96,52 +95,56 @@ export function PlayerHand() {
           >
             Start New Fold
           </button>
-        )}
-        {status === "running" && isPlayerTurn && fold && !fold.closed && (
-          <>
+        </div>
+      )}
+      {status === "running" && isPlayerTurn && fold && !fold.closed && (
+        <div className="actions">
+          <button
+            onClick={() => {
+              if (isMoveAllowed(fold, selectedCards, isRevolution)) {
+                dispatch(playCards(selectedCards));
+                setSelectedCards([]);
+              } else {
+                alert("Illegal Move");
+              }
+            }}
+          >
+            {selectedCards.length < 2
+              ? `Play ${selectedCards.length} Card. ${
+                  isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
+                }`
+              : `Play ${selectedCards.length} Cards. ${
+                  isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
+                }`}
+          </button>
+          {!isSameOrNothingPlay && (
             <button
               onClick={() => {
-                if (isMoveAllowed(fold, selectedCards, isRevolution)) {
-                  dispatch(playCards(selectedCards));
-                  setSelectedCards([]);
-                } else {
-                  alert("Illegal Move");
-                }
+                dispatch(pass());
+                setSelectedCards([]);
               }}
             >
-              {selectedCards.length < 2
-                ? `Play ${selectedCards.length} Card. ${
-                    isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
-                  }`
-                : `Play ${selectedCards.length} Cards. ${
-                    isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
-                  }`}
+              Pass
             </button>
-            {!isSameOrNothingPlay && (
-              <button
-                onClick={() => {
-                  dispatch(pass());
-                  setSelectedCards([]);
-                }}
-              >
-                Pass
-              </button>
-            )}
-          </>
-        )}
-      </div>
+          )}
+        </div>
+      )}
 
       <section className="cards">
         {sortedHand &&
-          sortedHand.map((cardId) => (
-            <Card
-              cardIndex={cardId}
-              key={cardId}
-              selected={selectedCards.includes(cardId)}
-              handleClick={toggleCard}
-            ></Card>
+          sortedHand.map((cardId, index) => (
+            <StyledSlotInHand slotIndex={index} slotNumber={sortedHand.length}>
+              <Card
+                cardIndex={cardId}
+                key={cardId}
+                selected={selectedCards.includes(cardId)}
+                handleClick={toggleCard}
+              ></Card>
+            </StyledSlotInHand>
           ))}
       </section>
+
+      {playerId && <Adversary playerId={playerId} isSelf={true} />}
     </StyledHand>
   );
 }

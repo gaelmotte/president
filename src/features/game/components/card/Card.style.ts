@@ -1,41 +1,63 @@
 import styled from "styled-components";
 
 export default styled.div`
+  width: 15vmin;
+  width: 15vmin;
+  height: 23vmin;
+  background-color: black;
+  border-radius: 1vmin;
+  text-align: left;
+
+  padding: 0.5vmin;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+
   overflow: hidden;
-  border-radius: 5px 0 0 5px;
-  margin-right: -5px;
+  box-shadow: inset 0 0 1vmin white;
 
-  :hover {
-    overflow: visible;
-    margin-right: 0px;
+  &.selected {
+    transform: translateY(-10%);
   }
 
-  :last-of-type {
-    overflow: visible;
-    margin-right: 0px;
+  &.♥️,
+  &.♦️ {
+    background-image: linear-gradient(-45deg, black, gold, black);
+    background-color: black;
   }
 
-  div {
-    width: 60px;
-    height: 90px;
-    border: solid 1px black;
-    background-color: #ccc;
-    border-radius: 5px;
-    text-align: left;
+  &.♣️,
+  &.♠️ {
+    background-image: linear-gradient(-45deg, gold, black, gold);
+    background-color: black;
   }
-  .♥️ {
-    color: red;
+
+  &.♥️::after,
+  &.♥️::before,
+  &.♦️::after,
+  &.♦️::before {
+    color: gold;
+    filter: drop-shadow(0 0 1vmin black);
   }
-  .♦️ {
-    color: red;
-  }
-  .♠️ {
+  &.♣️::after,
+  &.♣️::before,
+  &.♠️::after,
+  &.♠️::before {
     color: black;
+    filter: drop-shadow(0 0 1vmin gold);
   }
-  .♣️ {
-    color: black;
+
+  &::before {
+    content: attr(data-figure) attr(data-color);
+    font-size: 3vmin;
   }
-  .selected {
-    background-color: green;
+
+  &::after {
+    content: attr(data-figure) attr(data-color);
+    font-size: 15vmin;
+    color: white;
+    filter: drop-shadow(0 0 1vmin white);
   }
 `;

@@ -7,6 +7,6 @@ export default styled.div`
   height: 100%;
 
   header {
-    margin-bottom: 20px;
+    margin-bottom: 1rem;
   }
 `;

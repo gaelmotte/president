@@ -14,12 +14,22 @@ export default styled.div`
   }
   h3 {
     position: absolute;
-    top: 35%;
-    left: 35%;
-    transform: rotate(-45deg);
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%) rotate(-45deg);
     color: RED;
-    border: solid red 3px;
-    padding: 5px;
-    font-size: 6em;
+    border: solid red 0.2vmin;
+    padding: 0.5vmin;
+    font-size: 6vmin;
+    z-index: 100;
+  }
+
+  .glows {
+    background-color: black;
+    filter: drop-shadow(0 0 1vmin gold);
+    border-radius: 1vmin;
+    font-size: 3vmin;
+    margin: 1vmin;
   }
 `;

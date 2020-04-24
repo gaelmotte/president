@@ -2,7 +2,9 @@ import styled from "styled-components";
 
 export default styled.div`
   overflow: hidden;
-  max-height: 30px;
+  max-height: 3vmin;
+
+  filter: drop-shadow(0 0 1vmin gold);
 
   :last-of-type {
     overflow: visible;
