@@ -17,6 +17,8 @@ export default styled.div`
     border: solid red 0.2rem;
     padding: 0.5rem;
     font-size: 6rem;
+
+    z-index: 100;
   }
 
   .gameTable {

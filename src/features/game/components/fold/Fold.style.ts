@@ -22,6 +22,7 @@ export default styled.div`
     border: solid red 0.2vmin;
     padding: 0.5vmin;
     font-size: 6vmin;
+    z-index: 100;
   }
 
   .glows {
