@@ -9,13 +9,33 @@ export default styled.div`
     justify-content: center;
   }
 
-  .buttons {
-    height: 5vmin;
-
+  .actions {
     display: flex;
     flex-direction: row;
     justify-content: center;
     align-items: center;
+
+    position: absolute;
+    top: -10vmin;
+    left: 50%;
+    transform: translate(-50%, 0);
+
+    background-color: black;
+    filter: drop-shadow(0 0 1vmin gold);
+    border-radius: 1vmin;
+    font-size: 3vmin;
+    margin: 1vmin;
+
+    &::after {
+      content: " ";
+      position: absolute;
+      background-color: black;
+      width: 2vmin;
+      height: 2vmin;
+      transform: rotate(45deg);
+      bottom: -12%;
+      z-index: -1;
+    }
 
     button {
       height: 3vmin;
