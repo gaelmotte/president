@@ -101,5 +101,7 @@ export default styled.div<{
     position: absolute;
     top: 0;
     left: 3.5vmin;
+    display: inline-block;
+    white-space: nowrap;
   }
 `;

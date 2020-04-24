@@ -46,13 +46,13 @@ export default ({
           😀
         </span>
       </div>
-      <span className="details">
+      <div className="details">
         {hasPassed && <>🙅‍♂️</>}
         {pseudo}
         {previousFinishEmoji && <>{previousFinishEmoji}</>}
         {finishEmoji && previousFinishEmoji && <> ➡ {finishEmoji}</>}
         {finishEmoji && !previousFinishEmoji && <>{finishEmoji}</>}
-      </span>
+      </div>
       <span className="handsize"> {handSize} </span>
     </StyledPlayerCartouche>
   );

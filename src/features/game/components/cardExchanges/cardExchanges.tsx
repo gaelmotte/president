@@ -36,7 +36,7 @@ export default () => {
 
   return (
     <StyledCardExchanges>
-      <section className="orders">
+      <section className={classNames("orders", "glows")}>
         {orders &&
           orders.map((order) => (
             <div>
@@ -49,7 +49,7 @@ export default () => {
       <section className="exchanges">
         {giveOrder && (
           <div>
-            <div>GIVING :</div>
+            <div className="glows">GIVING :</div>
             <div className="cards">
               {giveOrder.cards.map((cardId, index) => (
                 <Card
@@ -64,7 +64,7 @@ export default () => {
         )}
         {receiveOrder && (
           <div>
-            <div>RECEIVING :</div>
+            <div className="glows">RECEIVING :</div>
             <div className="cards">
               {receiveOrder.cards.map((cardId, index) => (
                 <Card
