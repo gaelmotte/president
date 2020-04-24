@@ -14,14 +14,11 @@ export default ({
   handleClick: (cardId: number) => void;
 }) => {
   return (
-    <StyledCard>
-      <div
-        className={classNames(getColor(cardIndex), { selected: selected })}
-        onClick={() => handleClick(cardIndex)}
-      >
-        {getFigure(cardIndex)}
-        {getColor(cardIndex)}
-      </div>
-    </StyledCard>
+    <StyledCard
+      className={classNames(getColor(cardIndex), { selected: selected })}
+      onClick={() => handleClick(cardIndex)}
+      data-figure={getFigure(cardIndex)}
+      data-color={getColor(cardIndex)}
+    />
   );
 };

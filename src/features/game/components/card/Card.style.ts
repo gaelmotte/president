@@ -1,44 +1,63 @@
 import styled from "styled-components";
 
 export default styled.div`
+  width: 15vmin;
+  width: 15vmin;
+  height: 23vmin;
+  background-color: black;
+  border-radius: 1vmin;
+  text-align: left;
+
+  padding: 0.5vmin;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+
   overflow: hidden;
-  border-radius: 0.5vmin 0 0 0.5vmin;
-  margin-right: -0.5vmin;
+  box-shadow: inset 0 0 1vmin white;
 
-  :hover {
-    overflow: visible;
-    margin-right: 0px;
-  }
-
-  :last-of-type {
-    overflow: visible;
-    margin-right: 0px;
-  }
-
-  div {
-    width: 15vmin;
-    width: 15vmin;
-    height: 23vmin;
-    border: solid 1px black;
-    background-color: #ccc;
-    border-radius: 1vmin;
-    text-align: left;
-    font-size: 3vmin;
-    padding-left: 0.5vmin;
-  }
-  .♥️ {
-    color: red;
-  }
-  .♦️ {
-    color: red;
-  }
-  .♠️ {
-    color: black;
-  }
-  .♣️ {
-    color: black;
-  }
-  .selected {
+  &.selected {
     transform: translateY(-10%);
+  }
+
+  &.♥️,
+  &.♦️ {
+    background-image: linear-gradient(-45deg, black, gold, black);
+    background-color: black;
+  }
+
+  &.♣️,
+  &.♠️ {
+    background-image: linear-gradient(-45deg, gold, black, gold);
+    background-color: black;
+  }
+
+  &.♥️::after,
+  &.♥️::before,
+  &.♦️::after,
+  &.♦️::before {
+    color: gold;
+    filter: drop-shadow(0 0 1vmin black);
+  }
+  &.♣️::after,
+  &.♣️::before,
+  &.♠️::after,
+  &.♠️::before {
+    color: black;
+    filter: drop-shadow(0 0 1vmin gold);
+  }
+
+  &::before {
+    content: attr(data-figure) attr(data-color);
+    font-size: 3vmin;
+  }
+
+  &::after {
+    content: attr(data-figure) attr(data-color);
+    font-size: 15vmin;
+    color: white;
+    filter: drop-shadow(0 0 1vmin white);
   }
 `;
