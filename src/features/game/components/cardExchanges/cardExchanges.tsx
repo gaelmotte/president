@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import classNames from "classnames";
 
 import Card from "../card/Card";
@@ -10,7 +10,7 @@ import {
   selectPusherId,
   startGame,
 } from "../../gameSlice";
-import { selectPlayersPseudo, selectIsHost } from "../../../room/roomSlice";
+import { selectPlayersPseudo } from "../../../room/roomSlice";
 
 export default () => {
   const orders = useSelector(selectCardExchangeOrders);
@@ -19,8 +19,6 @@ export default () => {
 
   const giveOrder = orders?.find((order) => order.from === playerId);
   const receiveOrder = orders?.find((order) => order.to === playerId);
-
-  const isHost = useSelector(selectIsHost);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -32,7 +30,7 @@ export default () => {
         clearTimeout(timerId);
       };
     }
-  }, [orders]);
+  }, [orders, dispatch]);
 
   return (
     <StyledCardExchanges>
