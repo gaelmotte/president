@@ -19,7 +19,6 @@ function App() {
             <Counter />
           </Route>
           <Route path="/:roomId">
-            In room
             <Room />
           </Route>
           <Route path="/">

@@ -12,6 +12,7 @@ interface RoomState {
   members: Member[];
   pastGames: PastGame[];
   currentGame: string | null;
+  currentGamePlayerIds: string[] | null;
 }
 
 const initialState: RoomState = {
@@ -21,19 +22,22 @@ const initialState: RoomState = {
   members: [],
   pastGames: [],
   currentGame: null,
+  currentGamePlayerIds: null,
 };
 
 type Member = {
   id: string;
   info: {
     pseudo: string;
-    isLeader: boolean;
+    isHost: boolean;
     joinedAt: number;
   };
 };
 
 type PastGame = {
   id: string;
+  playerIds: string[];
+  finishOrder: string[];
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -77,8 +81,18 @@ export const roomSlice = createSlice({
           : 1
       );
     },
-    setCurrentGame: (state, action: PayloadAction<string>) => {
-      state.currentGame = action.payload;
+    setCurrentGame: (
+      state,
+      action: PayloadAction<{
+        gameId: string | null;
+        playerIds: string[] | null;
+      }>
+    ) => {
+      state.currentGame = action.payload.gameId;
+      state.currentGamePlayerIds = action.payload.playerIds;
+    },
+    setPastGame: (state, action: PayloadAction<PastGame>) => {
+      state.pastGames.push(action.payload);
     },
   },
 });
@@ -90,6 +104,7 @@ export const {
   addConnectedMember,
   removeConnectedMember,
   setCurrentGame,
+  setPastGame,
 } = roomSlice.actions;
 
 export const connectToRoom = (roomId: string): AppThunk => (
@@ -141,16 +156,22 @@ export const connectToRoom = (roomId: string): AppThunk => (
     dispatch(removeConnectedMember(member));
   });
 
-  channel.bind("client-game-starting", ({ gameId }: { gameId: string }) => {
-    dispatch(setCurrentGame(gameId));
-  });
+  channel.bind(
+    "client-game-starting",
+    ({ gameId, playerIds }: { gameId: string; playerIds: string[] }) => {
+      dispatch(setCurrentGame({ gameId, playerIds }));
+    }
+  );
 };
 
-export const startNewGame = (): AppThunk => (dispatch, getState) => {
+export const startNewGame = (playerIds: string[]): AppThunk => (
+  dispatch,
+  getState
+) => {
   if (!selectIsConnected(getState()))
     throw new Error("Cannot start game on an unconnected room");
-  if (!selectIsLeader(getState()))
-    throw new Error("Cannot start game is not the leader of the room");
+  if (!selectIsHost(getState()))
+    throw new Error("Cannot start game is not the Host of the room");
 
   const roomId = selectRoomId(getState());
 
@@ -160,10 +181,9 @@ export const startNewGame = (): AppThunk => (dispatch, getState) => {
   }
 
   const gameId = uuidv4();
-  dispatch(setCurrentGame(gameId));
+  dispatch(setCurrentGame({ gameId, playerIds }));
 
-  //send events to players
-  channel.trigger("client-game-starting", { gameId });
+  channel.trigger("client-game-starting", { gameId, playerIds });
 };
 
 // The function below is called a selector and allows us to select a value from
@@ -177,9 +197,9 @@ export const selectRoomId = (state: RootState) => state.room.roomId;
 
 export const selectConnectedMembers = (state: RootState) => state.room.members;
 
-export const selectIsLeader = (state: RootState) =>
+export const selectIsHost = (state: RootState) =>
   state.room.members.some(
-    (member) => member.id === state.room.pusherId && member.info.isLeader
+    (member) => member.id === state.room.pusherId && member.info.isHost
   );
 
 export const selectLastGame = (state: RootState) =>
@@ -187,8 +207,40 @@ export const selectLastGame = (state: RootState) =>
 
 export const selectCurrentGameId = (state: RootState) => state.room.currentGame;
 
+export const selectCurrentGamePlayerIds = (state: RootState) =>
+  state.room.currentGamePlayerIds;
+
 export default (gc: any, sc: any) => {
   getChannel = gc;
   setChannel = sc;
   return roomSlice.reducer;
+};
+
+export const selectHostId = (state: RootState) => {
+  if (state.room.members) {
+    const host = state.room.members.find((member) => member.info.isHost);
+    return host ? host.id : undefined;
+  }
+};
+
+export const selectPlayerPseudo = (playerId: string | undefined) => (
+  state: RootState
+) =>
+  playerId
+    ? state.room.members.find((member) => member.id === playerId)?.info.pseudo
+    : undefined;
+
+export const selectPlayersPseudo = (state: RootState) => {
+  return state.room.members.reduce<{ [playerId: string]: string }>(
+    (acc: { [playerId: string]: string }, member: Member) => {
+      acc[member.id] = member.info.pseudo;
+      return acc;
+    },
+    {}
+  );
+};
+
+export const selectPreviousGamePlayers = (state: RootState) => {
+  if (state.room.pastGames.length === 0) return null;
+  return state.room.pastGames.slice(-1)[0].playerIds;
 };

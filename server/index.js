@@ -46,7 +46,7 @@ express()
             user_id: uuid.v4(),
             user_info: {
               pseudo: pseudo,
-              isLeader: users.length === 0,
+              isHost: users.length === 0,
               joinedAt: new Date().getTime(),
             },
           };
