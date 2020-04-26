@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from "react";
-import classNames from "classnames";
 
 import Card from "../card/Card";
 import MoveComp from "./components/Move/Move";
@@ -10,7 +9,6 @@ import {
   selectCurrentFold,
   selectIsPlayerTurn,
   setEndFold,
-  selectPlayerIds,
 } from "../../gameSlice";
 
 import { Move, Fold } from "../../../../services/cardsUtils";
@@ -18,7 +16,6 @@ import { Move, Fold } from "../../../../services/cardsUtils";
 export default () => {
   const fold: Fold | null = useSelector(selectCurrentFold);
   const isPlayerTurn = useSelector(selectIsPlayerTurn);
-  const playerIds = useSelector(selectPlayerIds);
   const dispatch = useDispatch();
 
   const closed = fold?.closed;

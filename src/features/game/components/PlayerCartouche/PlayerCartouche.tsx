@@ -1,5 +1,5 @@
 import React from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import classNames from "classnames";
 
 import StyledPlayerCartouche from "./PlayerCartouche.style";
@@ -7,7 +7,6 @@ import { selectPlayerPseudo } from "../../../room/roomSlice";
 import {
   selectCurrentPlayer,
   selectAdversaryHandSize,
-  selectFinishedPlayers,
   selectPassedPlayers,
   selectComputeFinishEmoji,
   selectComputePreviousFinishEmoji,
@@ -27,7 +26,6 @@ export default ({
   const pseudo = useSelector(selectPlayerPseudo(playerId));
   const isPlaying = useSelector(selectCurrentPlayer) === playerId;
   const handSize = useSelector(selectAdversaryHandSize(playerId));
-  const isFinished = useSelector(selectFinishedPlayers)?.includes(playerId);
   const hasPassed = useSelector(selectPassedPlayers)?.includes(playerId);
   const finishEmoji = useSelector(selectComputeFinishEmoji(playerId));
   const previousFinishEmoji = useSelector(

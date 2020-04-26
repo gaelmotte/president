@@ -171,7 +171,6 @@ export const initializeGame = (
   const channel: PusherTypes.PresenceChannel | null = getChannel();
   if (!channel) throw new Error("Channel not initialized");
 
-  console.log("setting up game");
   dispatch(setStatus("starting"));
 
   dispatch(setPlayerIds(playerIds));
@@ -179,15 +178,11 @@ export const initializeGame = (
 
   // ask server to deal cards if Host
   if (isHost) {
-    console.log("Deal cards");
-
     const hands = dealCards(playerIds);
     const cardEchangeOrders = selectComputedCardExchangeOrdersFromPreviousGame(
       playerIds
     )(getState());
-    console.log("found oerders", cardEchangeOrders);
     const pusherId = selectPusherId(getState());
-    console.log("dealing cards as ", pusherId);
     if (pusherId) {
       setTimeout(() => {
         channel.trigger("client-game-cards-dealt", hands);
@@ -213,7 +208,6 @@ export const initializeGame = (
         data: { [playerId: string]: number[] },
         metadata: { user_id: string }
       ) => {
-        console.log("Received cards", data);
         dispatch(setPlayersHands(data));
         dispatch(setCurrentPlayer(startingPlayer));
       }
@@ -222,7 +216,6 @@ export const initializeGame = (
     channel.bind(
       "client-game-cards-to-be-exchanged",
       (data: CardExchangeOrder[], metadata: { user_id: string }) => {
-        console.log("cards exchange starting", data);
         dispatch(setCardExchangeOrders(data));
       }
     );
@@ -233,9 +226,6 @@ export const initializeGame = (
         data: { [playerId: string]: number[] },
         metadata: { user_id: string }
       ) => {
-        console.log("cards exchange done", data);
-        // TODO update hands based on what was exchanged for every players.
-        // TODO set status running
         dispatch(setPlayersHands(data));
         dispatch(setStatus("running"));
       }
@@ -245,8 +235,6 @@ export const initializeGame = (
   channel.bind(
     "client-game-cards-exchanged",
     (data: CardExchangeOrder, metadata: { user_id: string }) => {
-      console.log("cards exchange done", data);
-
       const orders = selectCardExchangeOrders(getState());
 
       if (orders) {
@@ -263,7 +251,6 @@ export const initializeGame = (
             type: order.type,
             cards: data.cards,
           };
-          console.log("giving cards");
 
           dispatch(setUpdateCardExchangeOrder(updatedOrder));
         }
@@ -277,7 +264,6 @@ export const initializeGame = (
     (data: any, metadata: { user_id: string }) => {
       dispatch(setPlayedMove({ playerId: metadata.user_id, cards: data }));
       dispatch(checkClosedFold());
-      console.log("playing cards", data);
       if (data.length === 4) dispatch(setToggleRevolution());
 
       dispatch(setCurrentPlayer(selectNextPlayer(getState())));
@@ -287,7 +273,6 @@ export const initializeGame = (
   channel.bind(
     "client-game-player-passed",
     (data: any, metadata: { user_id: string }) => {
-      console.log("player passed", metadata.user_id);
       dispatch(setPlayerPassed(metadata.user_id));
       dispatch(checkClosedFold());
 
@@ -298,7 +283,6 @@ export const initializeGame = (
   channel.bind(
     "client-game-fold-started",
     (data: number[], metadata: { user_id: string }) => {
-      console.log("fold started", metadata.user_id);
       dispatch(setNewFold(data));
 
       const currentPlayer = selectCurrentPlayer(getState());
@@ -346,12 +330,10 @@ export const playCards = (cards: number[]): AppThunk => (
   if (!channel) throw new Error("Channel not initialized");
 
   channel.trigger("client-game-cards-played", cards);
-  console.log("playing cards");
 
   const currentPlayer = selectCurrentPlayer(getState());
   if (!currentPlayer) throw "No current PLayer";
 
-  console.log("playing cards", cards);
   if (cards.length === 4) dispatch(setToggleRevolution());
   dispatch(setPlayedMove({ playerId: currentPlayer, cards }));
   dispatch(checkClosedFold());
@@ -380,7 +362,6 @@ export const giveCards = (cards: number[]): AppThunk => (
         cards: cards,
       };
       channel.trigger("client-game-cards-exchanged", updatedOrder);
-      console.log("giving cards");
 
       dispatch(setUpdateCardExchangeOrder(updatedOrder));
     }
@@ -471,7 +452,6 @@ export const checkClosedFold = (): AppThunk => (dispatch, getState) => {
   const isRevolution = selectIsRevolution(getState());
 
   if (fold && currentPlayer) {
-    console.log("Checking if fold is closed", fold.moves.slice(-1));
     const playerIds = selectPlayerIds(getState());
     if (!playerIds) return false;
 
@@ -639,7 +619,6 @@ export const selectDisqualifiedPlauers = (state: RootState) =>
   state.game.disqualifiedPlayers;
 
 export const selectIsSameOrNothingPlay = (state: RootState) => {
-  console.log("Recomputing is SAme or Nothing", state.game.currentFold);
   return (
     state.game.currentFold &&
     state.game.currentFold.moves.length >= 2 &&
@@ -676,8 +655,6 @@ export const selectSamePlayersAsPreviousGame = (playerIds: string[]) => (
 export const selectComputedCardExchangeOrdersFromPreviousGame = (
   playerIds: string[]
 ) => (state: RootState): CardExchangeOrder[] | null => {
-  console.log("computing card Exchange orders");
-
   if (
     state.room.pastGames.length === 0 ||
     !selectSamePlayersAsPreviousGame(playerIds)(state)
@@ -685,8 +662,6 @@ export const selectComputedCardExchangeOrdersFromPreviousGame = (
     return null;
 
   const { finishOrder } = state.room.pastGames.slice(-1)[0];
-
-  console.log("computing card Exchange orders", finishOrder);
 
   const orders: CardExchangeOrder[] = [];
 
@@ -721,7 +696,6 @@ export const selectComputedCardExchangeOrdersFromPreviousGame = (
       cards: [],
     });
   }
-  console.log("computing card Exchange orders", orders);
 
   return orders;
 };

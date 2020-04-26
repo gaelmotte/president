@@ -1,11 +1,9 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import classNames from "classnames";
 
 import {
   initializeGame,
   selectStatus,
-  selectFinishedPlayers,
   reset,
   selectAdversaries,
   selectIsGameFinished,
@@ -32,7 +30,6 @@ export function Game({
 }) {
   const dispatch = useDispatch();
   const status = useSelector(selectStatus);
-  const finishedPlayers = useSelector(selectFinishedPlayers);
   const connectedMembers = useSelector(selectConnectedMembers);
   const missingPlayer = playerIds.some(
     (id) => !connectedMembers.map((member) => member.id).includes(id)

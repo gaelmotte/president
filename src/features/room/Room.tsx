@@ -9,7 +9,6 @@ import StyledRoom from "./Room.style";
 
 import {
   setPseudo,
-  selectPseudo,
   connectToRoom,
   selectIsConnected,
   selectConnectedMembers,
@@ -19,7 +18,6 @@ import {
   startNewGame,
   selectHostId,
   selectPlayerPseudo,
-  selectPreviousGamePlayers,
 } from "./roomSlice";
 import { selectSamePlayersAsPreviousGame } from "../game/gameSlice";
 
@@ -31,7 +29,6 @@ export function Room() {
   const currentGamePlayerIds = useSelector(selectCurrentGamePlayerIds);
   const hostId = useSelector(selectHostId);
   const hostPseudo = useSelector(selectPlayerPseudo(hostId));
-  const previousGamePlayers = useSelector(selectPreviousGamePlayers);
   const isSamePlayers = useSelector(
     selectSamePlayersAsPreviousGame(connectedMembers.map((member) => member.id))
   );
@@ -55,7 +52,6 @@ export function Room() {
     [dispatch]
   );
 
-  console.log(connectedMembers);
   return (
     <StyledRoom>
       <header>
