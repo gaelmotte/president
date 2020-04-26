@@ -44,7 +44,7 @@ export default styled.div`
   &.♣️::after,
   &.♣️::before,
   &.♠️::after,
-  &.♠::before {
+  &.♠️::before {
     color: black;
     filter: drop-shadow(0 0 1vmin gold);
   }
