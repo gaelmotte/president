@@ -52,7 +52,6 @@ export function Room() {
     [dispatch]
   );
 
-  console.log(connectedMembers);
   return (
     <StyledRoom>
       <header>

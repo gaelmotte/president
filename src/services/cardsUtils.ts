@@ -63,14 +63,12 @@ export const isMoveAllowed = (
     return cards.length > 0 && cards.length < 5 && allSameFigure;
   } else {
     // validating based on previous events in the fold.
-    console.log(cards.length, fold.cardsPerPlay);
     if (
       !allSameFigure ||
       (cards.length !== fold.cardsPerPlay && cards.length !== 0)
     )
       return false;
 
-    console.log(fold.moves, fold.moves.slice(-2));
     if (
       fold.moves.filter((move) => move.cards.length !== 0).length >= 2 &&
       new Set(
