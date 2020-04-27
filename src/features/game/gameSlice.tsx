@@ -628,7 +628,9 @@ export const selectIsSameOrNothingPlay = (state: RootState) => {
         .slice(-2)
         .map((move) => getFigure(move.cards[0]))
     ).size === 1 &&
-    state.game.currentFold.moves.slice(-1)[0].cards.length !== 0
+    state.game.currentFold.moves.slice(-1)[0].cards.length !== 0 &&
+    state.game.currentPlayer !==
+      state.game.currentFold.moves.slice(-1)[0].playerId
   );
 };
 
