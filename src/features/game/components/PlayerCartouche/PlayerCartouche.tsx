@@ -3,7 +3,10 @@ import { useSelector } from "react-redux";
 import classNames from "classnames";
 
 import StyledPlayerCartouche from "./PlayerCartouche.style";
-import { selectPlayerPseudo } from "../../../room/roomSlice";
+import {
+  selectPlayerPseudo,
+  selectPlayerAvatar,
+} from "../../../room/roomSlice";
 import {
   selectCurrentPlayer,
   selectAdversaryHandSize,
@@ -24,6 +27,7 @@ export default ({
   isSelf?: boolean;
 }) => {
   const pseudo = useSelector(selectPlayerPseudo(playerId));
+  const avatar = useSelector(selectPlayerAvatar(playerId));
   const isPlaying = useSelector(selectCurrentPlayer) === playerId;
   const handSize = useSelector(selectAdversaryHandSize(playerId));
   const hasPassed = useSelector(selectPassedPlayers)?.includes(playerId);
@@ -41,7 +45,7 @@ export default ({
     >
       <div className="avatar">
         <span role="img" aria-label="player avatar">
-          😀
+          {avatar}
         </span>
       </div>
       <div className="details">
