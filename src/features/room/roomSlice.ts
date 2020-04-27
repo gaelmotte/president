@@ -107,6 +107,10 @@ export const roomSlice = createSlice({
       state.pastGames.push(action.payload);
     },
 
+    setPastGames: (state, action: PayloadAction<PastGame[]>) => {
+      state.pastGames = action.payload;
+    },
+
     updatePlayerIdentity: (
       state,
       action: PayloadAction<{ playerId: string; identity: PlayerIdentity }>
@@ -131,6 +135,7 @@ export const {
   removeConnectedMember,
   setCurrentGame,
   setPastGame,
+  setPastGames,
   updatePlayerIdentity,
   updatePlayerIdentities,
 } = roomSlice.actions;
@@ -201,6 +206,10 @@ export const connectToRoom = (roomId: string): AppThunk => (
         "client-room-update-identities",
         selectPlayerIdentities(getState())
       );
+      channel.trigger(
+        "client-room-update-past-games",
+        selectPastGames(getState())
+      );
     }
   });
 
@@ -221,6 +230,10 @@ export const connectToRoom = (roomId: string): AppThunk => (
       dispatch(updatePlayerIdentities(identities));
     }
   );
+  channel.bind("client-room-update-past-games", (pastGames: PastGame[]) => {
+    console.log("called");
+    dispatch(setPastGames(pastGames));
+  });
 };
 
 export const startNewGame = (playerIds: string[]): AppThunk => (
@@ -392,3 +405,5 @@ export const selectPastGamesScores = (state: RootState) => {
 
   return setScores;
 };
+
+export const selectPastGames = (state: RootState) => state.room.pastGames;
