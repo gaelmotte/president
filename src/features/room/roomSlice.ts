@@ -318,3 +318,77 @@ export const selectAvailableAvatar = (state: RootState) => {
 export const selectPlayerIdentities = (state: RootState) => {
   return state.room.playerIdentities;
 };
+
+type setScores = {
+  playerIds: string[];
+  points: number[][];
+  total?: number[];
+  emojis?: string[];
+};
+
+export const finishEmoji = Object.freeze({
+  2: ["🎖", "💩"],
+  3: ["🎖", "👐", "💩"],
+  4: ["🎖", "🥈", "🖕", "💩"],
+  5: ["🎖", "🥈", "👐", "🖕", "💩"],
+  6: ["🎖", "🥈", "👐", "👐", "🖕", "💩"],
+});
+
+export const selectPastGamesScores = (state: RootState) => {
+  let setScores: setScores[] = [];
+  for (let i = 0; i < state.room.pastGames.length; i++) {
+    if (
+      i === 0 ||
+      state.room.pastGames[i - 1].playerIds.length !==
+        state.room.pastGames[i].playerIds.length ||
+      state.room.pastGames[i - 1].playerIds.some(
+        (it) => !state.room.pastGames[i].playerIds.includes(it)
+      )
+    ) {
+      setScores.push({
+        playerIds: state.room.pastGames[i].playerIds,
+        points: [],
+      });
+    }
+    const currentSet: setScores = setScores.slice(-1)[0];
+    currentSet.points.push(
+      state.room.pastGames[i].playerIds.map(
+        (it) =>
+          currentSet.playerIds.length -
+          state.room.pastGames[i].finishOrder.indexOf(it) -
+          1
+      )
+    );
+  }
+
+  setScores = setScores.map((set, setIndex) => {
+    const total = set.playerIds.map((playerId, playerIndex) =>
+      set.points.reduce<number>(
+        (acc: number, row: number[]) => acc + row[playerIndex],
+        0
+      )
+    );
+    return {
+      ...set,
+      total,
+      emojis: set.playerIds.map((playerId) => {
+        if (
+          set.playerIds.length !== 2 &&
+          set.playerIds.length !== 3 &&
+          set.playerIds.length !== 4 &&
+          set.playerIds.length !== 5 &&
+          set.playerIds.length !== 6
+        )
+          return "";
+        const sortedPlayersAndTotal = set.playerIds
+          .map((pid, index) => ({ pid, total: total[index] }))
+          .sort((a, b) => b.total - a.total);
+        return finishEmoji[set.playerIds.length][
+          sortedPlayersAndTotal.findIndex((it) => it.pid === playerId)
+        ];
+      }),
+    };
+  });
+
+  return setScores;
+};

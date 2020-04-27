@@ -6,6 +6,7 @@ import { useRouteMatch } from "react-router-dom";
 import { Game } from "../game/Game";
 
 import StyledRoom from "./Room.style";
+import ScoreDisplayer from "./components/scoreDisplayer/ScoreDisplayer";
 
 import {
   setPseudo,
@@ -113,6 +114,7 @@ export function Room() {
           </button>
         </>
       )}
+      {isConnected && <ScoreDisplayer />}
     </StyledRoom>
   );
 }
