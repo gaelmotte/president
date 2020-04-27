@@ -4,7 +4,8 @@
 // because the game orders cards as 3?4?5?6?7?8?9,10,J,Q,K,2, they are ordered that way
 
 export const dealCards = (
-  playerIds: string[]
+  playerIds: string[],
+  startingPlayer: string
 ): { [playerId: string]: number[] } => {
   const deck: number[] = [...Array(52).keys()];
   deck.sort(() => Math.random() - 0.5);
@@ -13,6 +14,11 @@ export const dealCards = (
   playerIds.forEach((playerId) => {
     hands[playerId] = [];
   });
+
+  while (playerIds[0] !== startingPlayer) {
+    const [first, ...rest] = playerIds;
+    playerIds = [...rest, first];
+  }
 
   for (let i = 0; i < 52; i++) {
     hands[playerIds[i % playerIds.length]].push(deck[i]);

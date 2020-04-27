@@ -178,7 +178,7 @@ export const initializeGame = (
 
   // ask server to deal cards if Host
   if (isHost) {
-    const hands = dealCards(playerIds);
+    const hands = dealCards(playerIds, startingPlayer);
     const cardEchangeOrders = selectComputedCardExchangeOrdersFromPreviousGame(
       playerIds
     )(getState());
