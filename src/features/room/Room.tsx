@@ -6,6 +6,8 @@ import { useRouteMatch } from "react-router-dom";
 import { Game } from "../game/Game";
 
 import StyledRoom from "./Room.style";
+import ScoreDisplayer from "./components/scoreDisplayer/ScoreDisplayer";
+import PlayersSelector from "./components/PlayersSelector/PlayerSelector";
 
 import {
   setPseudo,
@@ -15,11 +17,9 @@ import {
   selectCurrentGameId,
   selectCurrentGamePlayerIds,
   selectIsHost,
-  startNewGame,
   selectHostId,
   selectPlayerPseudo,
 } from "./roomSlice";
-import { selectSamePlayersAsPreviousGame } from "../game/gameSlice";
 
 export function Room() {
   const connectedMembers = useSelector(selectConnectedMembers);
@@ -29,9 +29,7 @@ export function Room() {
   const currentGamePlayerIds = useSelector(selectCurrentGamePlayerIds);
   const hostId = useSelector(selectHostId);
   const hostPseudo = useSelector(selectPlayerPseudo(hostId));
-  const isSamePlayers = useSelector(
-    selectSamePlayersAsPreviousGame(connectedMembers.map((member) => member.id))
-  );
+
   const dispatch = useDispatch();
   const {
     params: { roomId },
@@ -74,45 +72,15 @@ export function Room() {
           </>
         )}
       </header>
-      {currentGameId && currentGamePlayerIds && (
+      {isConnected && currentGameId && currentGamePlayerIds && (
         <Game
           gameId={currentGameId}
           isHost={isHost}
           playerIds={currentGamePlayerIds}
         />
       )}
-      {!currentGameId && isHost && !isSamePlayers && (
-        <>
-          <h2>Start a game</h2>
-          Starting a game for all the connected members for that first game.
-          (players changed or first game)
-          <button
-            onClick={() =>
-              dispatch(
-                startNewGame(connectedMembers.map((member) => member.id))
-              )
-            }
-          >
-            Start First Game
-          </button>
-        </>
-      )}
-
-      {!currentGameId && isHost && isSamePlayers && (
-        <>
-          <h2>Start a game</h2>
-          Starting a game with card exchange since players are the same
-          <button
-            onClick={() =>
-              dispatch(
-                startNewGame(connectedMembers.map((member) => member.id))
-              )
-            }
-          >
-            Start Next Game
-          </button>
-        </>
-      )}
+      {isConnected && !currentGameId && isHost && <PlayersSelector />}
+      {isConnected && <ScoreDisplayer />}
     </StyledRoom>
   );
 }

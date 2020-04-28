@@ -52,6 +52,10 @@ export default styled.div`
       border-radius: 0.5vmin;
 
       cursor: pointer;
+
+      :disabled {
+        box-shadow: inset 0.15vmin 0.15vmin 1vmin red;
+      }
     }
   }
   .cards {

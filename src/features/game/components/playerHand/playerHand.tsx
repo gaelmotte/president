@@ -108,12 +108,18 @@ export function PlayerHand() {
                 alert("Illegal Move");
               }
             }}
+            disabled={
+              !(
+                selectedCards.length === fold.cardsPerPlay ||
+                (selectedCards.length === 0 && isSameOrNothingPlay)
+              )
+            }
           >
-            {selectedCards.length < 2
-              ? `Play ${selectedCards.length} Card. ${
+            {fold.cardsPerPlay < 2
+              ? `Play 1 Card. ${
                   isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
                 }`
-              : `Play ${selectedCards.length} Cards. ${
+              : `Play ${fold.cardsPerPlay} Cards. ${
                   isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
                 }`}
           </button>
@@ -123,6 +129,7 @@ export function PlayerHand() {
                 dispatch(pass());
                 setSelectedCards([]);
               }}
+              disabled={selectedCards.length !== 0}
             >
               Pass
             </button>
