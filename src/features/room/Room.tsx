@@ -80,7 +80,7 @@ export function Room() {
         />
       )}
       {isConnected && !currentGameId && isHost && <PlayersSelector />}
-      {isConnected && <ScoreDisplayer />}
+      {isConnected && !currentGameId && <ScoreDisplayer />}
     </StyledRoom>
   );
 }
