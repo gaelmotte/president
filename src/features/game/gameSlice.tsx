@@ -572,7 +572,7 @@ export const selectNextPlayer = (state: RootState) => {
 export const selectAdversaries = (state: RootState) => {
   if (!state.game.playerIds || !state.room.pusherId) return undefined;
   const playerIndex = state.game.playerIds.indexOf(state.room.pusherId);
-  if (playerIndex === -1) throw new Error("NO PLAYER");
+  if (playerIndex === -1) return state.game.playerIds;
 
   let adversaries: string[] = [];
 

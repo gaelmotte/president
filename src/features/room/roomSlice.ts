@@ -80,6 +80,10 @@ export const roomSlice = createSlice({
           ? -1
           : 1
       );
+      state.members = state.members.filter(
+        (it, index, arr) =>
+          arr.findIndex((member) => it.id === member.id) === index
+      );
     },
     removeConnectedMember: (state, action: PayloadAction<Member>) => {
       state.members.splice(
