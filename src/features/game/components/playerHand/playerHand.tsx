@@ -14,6 +14,7 @@ import {
   selectIsRevolution,
   selectStatus,
   selectCardExchangeOrders,
+  selectTimerDuration,
 } from "../../gameSlice";
 import Card from "../card/Card";
 import { compareValues, isMoveAllowed } from "../../../../services/cardsUtils";
@@ -32,6 +33,7 @@ export function PlayerHand() {
   const isRevolution = useSelector(selectIsRevolution);
   const status = useSelector(selectStatus);
   const orders = useSelector(selectCardExchangeOrders);
+  const timerDuration = useSelector(selectTimerDuration);
   const order = orders?.find((order) => order.from === playerId);
 
   const toggleCard = useCallback(
@@ -53,6 +55,36 @@ export function PlayerHand() {
 
     return () => {};
   }, [order, dispatch, hand]);
+
+  useEffect(() => {
+    if (status === "running" && isPlayerTurn && fold) {
+      if (!isSameOrNothingPlay) {
+        const timerId = setTimeout(() => {
+          dispatch(pass());
+          setSelectedCards([]);
+        }, timerDuration);
+        return () => {
+          clearTimeout(timerId);
+        };
+      } else {
+        const timerId = setTimeout(() => {
+          dispatch(playCards([]));
+          setSelectedCards([]);
+        }, timerDuration);
+        return () => {
+          clearTimeout(timerId);
+        };
+      }
+    }
+  }, [
+    status,
+    isPlayerTurn,
+    fold,
+    isSameOrNothingPlay,
+    dispatch,
+    setSelectedCards,
+    timerDuration,
+  ]);
 
   const sortedHand = hand?.slice().sort(compareValues);
   if (isRevolution) sortedHand?.reverse();

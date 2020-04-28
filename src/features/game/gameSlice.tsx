@@ -33,6 +33,7 @@ interface GameState {
   disqualifiedPlayers: string[] | null;
   isRevolution: boolean;
   cardExchangeOrders: CardExchangeOrder[] | null;
+  timerDuration: number;
 }
 const initialState: GameState = {
   gameId: null,
@@ -45,6 +46,7 @@ const initialState: GameState = {
   disqualifiedPlayers: null,
   isRevolution: false,
   cardExchangeOrders: null,
+  timerDuration: 15000,
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -790,3 +792,6 @@ export const selectComputePreviousFinishEmoji = (playerId: string) => (
     }
   }
 };
+
+export const selectTimerDuration = (state: RootState) =>
+  state.game.timerDuration;
