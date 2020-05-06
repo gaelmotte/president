@@ -33,22 +33,22 @@ export default styled.div<{
         `;
         case 2:
           return `
-        left:${(props.playerIndex + 1) * 33}vmin;
+        left:${(props.playerIndex + 1) * 33}%;
         
         `;
         case 3:
           return `
-        left:${(props.playerIndex + 1) * 25}vmin;
+        left:${(props.playerIndex + 1) * 25}%;
         
         `;
         case 4:
           return `
-        left:${(props.playerIndex + 1) * 20}vmin;
+        left:${(props.playerIndex + 1) * 20}%;
         
         `;
         case 5:
           return `
-        left:${(props.playerIndex + 1) * 17}vmin;
+        left:${(props.playerIndex + 1) * 17}%;
         
         `;
       }
