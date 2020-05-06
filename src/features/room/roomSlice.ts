@@ -86,16 +86,15 @@ export const roomSlice = createSlice({
       );
     },
     removeConnectedMember: (state, action: PayloadAction<Member>) => {
-      state.members.splice(
-        state.members.findIndex((member) => member.id === action.payload.id)
-      );
-      state.members.sort((a, b) =>
-        a.info.joinedAt === b.info.joinedAt
-          ? 0
-          : a.info.joinedAt < b.info.joinedAt
-          ? -1
-          : 1
-      );
+      state.members = state.members
+        .filter((member) => member.id !== action.payload.id)
+        .sort((a, b) =>
+          a.info.joinedAt === b.info.joinedAt
+            ? 0
+            : a.info.joinedAt < b.info.joinedAt
+            ? -1
+            : 1
+        );
     },
     setCurrentGame: (
       state,
