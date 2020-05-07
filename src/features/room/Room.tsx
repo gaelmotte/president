@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
 import { useRouteMatch } from "react-router-dom";
@@ -29,6 +29,7 @@ export function Room() {
   const currentGamePlayerIds = useSelector(selectCurrentGamePlayerIds);
   const hostId = useSelector(selectHostId);
   const hostPseudo = useSelector(selectPlayerPseudo(hostId));
+  const [pseudo, setPseudoState] = useState<string>("");
 
   const dispatch = useDispatch();
   const {
@@ -38,20 +39,21 @@ export function Room() {
   const handleSubmitConnectionForm = useCallback(
     (e) => {
       e.preventDefault();
+      dispatch(setPseudo(pseudo));
       dispatch(connectToRoom(roomId));
     },
-    [roomId, dispatch]
+    [roomId, dispatch, pseudo]
   );
 
   const handlePseudoChange = useCallback(
     (e) => {
-      dispatch(setPseudo(e.target.value));
+      setPseudoState(e.target.value);
     },
-    [dispatch]
+    [setPseudoState]
   );
 
   return (
-    <StyledRoom>
+    <StyledRoom valid={pseudo.length !== 0 && pseudo.length <= 15}>
       <header>
         {isConnected && <h1>Room created by {hostPseudo}.</h1>}
         {!isConnected && (
@@ -61,7 +63,10 @@ export function Room() {
               placeholder="pseudo"
               onChange={handlePseudoChange}
             ></input>
-            <input type="submit" />
+            <input
+              type="submit"
+              disabled={pseudo.length === 0 || pseudo.length > 15}
+            />
           </form>
         )}
 

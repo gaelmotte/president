@@ -33,26 +33,31 @@ export default styled.div<{
         `;
         case 2:
           return `
-        left:${(props.playerIndex + 1) * 33}%;
+        left:${props.playerIndex * 33 + 16}%;
         
         `;
         case 3:
           return `
-        left:${(props.playerIndex + 1) * 25}%;
+        left:${props.playerIndex * 25 + 12}%;
         
         `;
         case 4:
           return `
-        left:${(props.playerIndex + 1) * 20}%;
+        left:${props.playerIndex * 20 + 10}%;
         
         `;
         case 5:
           return `
-        left:${(props.playerIndex + 1) * 17}%;
+        left:${props.playerIndex * 17 + 5}%;
         
         `;
       }
   }}
+
+  @media (max-aspect-ratio: 3/2) {
+    top: ${(props) =>
+      props.playerIndex && !props.isSelf ? props.playerIndex * 3 : 0}vmin;
+  }
 
   .avatar {
     width: 8vmin;
@@ -90,7 +95,7 @@ export default styled.div<{
   }
 
   .details {
-    font-size: 2.5vmin;
+    font-size: 2vmin;
     padding-right: 2.5vmin;
 
     background-color: black;
