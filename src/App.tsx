@@ -1,10 +1,10 @@
 import React from "react";
 
-import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
-import { v4 as uuidv4 } from "uuid";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 
-import { Counter } from "./features/counter/Counter";
 import { Room } from "./features/room/Room";
+import { Home } from "./features/home/Home";
+
 import "./App.css";
 
 function App() {
@@ -12,18 +12,11 @@ function App() {
     <div className="App">
       <Router>
         <Switch>
-          <Route path="/counter">
-            <Counter />
-          </Route>
-          <Route path="/newgame">
-            <Counter />
-          </Route>
           <Route path="/:roomId">
             <Room />
           </Route>
           <Route path="/">
-            HOME
-            <Link to={"/" + uuidv4()}>GO</Link>
+            <Home />
           </Route>
         </Switch>
       </Router>

@@ -25,9 +25,15 @@ export default styled.div`
     flex: 1;
     flex-shrink: 1;
     min-height: 0;
-    position: relative;
 
     justify-content: center;
     display: flex;
+    flex-direction: column;
+
+    .adversaries {
+      position: relative;
+      width: 100vw;
+      height: 1px;
+    }
   }
 `;

@@ -45,18 +45,19 @@ export default () => {
 
   return (
     <StyledPlayersSelector>
-      <div>
+      <div className="wrap">
+        <h2>Start a game</h2>
+        <p>Choose which players should play</p>
         <ul>
           {members.map((member) => (
             <li key={member.id}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={selectedPlayers.includes(member.id)}
-                  onChange={() => handleChangeCheckbox(member.id)}
-                />
-                {playersPseudo[member.id]}
-              </label>
+              <input
+                type="checkbox"
+                checked={selectedPlayers.includes(member.id)}
+                onChange={() => handleChangeCheckbox(member.id)}
+                id={member.id}
+              />
+              <label htmlFor={member.id}>{playersPseudo[member.id]}</label>
             </li>
           ))}
         </ul>
@@ -64,9 +65,14 @@ export default () => {
       <div>
         {!isSamePlayers && (
           <>
-            <h2>Start a game</h2>
-            Starting a game for all the connected members for that first game.
-            (players changed or first game)
+            <p>
+              {" "}
+              {selectedPlayers.length < 4 || selectedPlayers.length > 6 ? (
+                <>Select 4 to 6 players to play.</>
+              ) : (
+                <>Start a new set for the selected players.</>
+              )}
+            </p>
             <button
               onClick={() => {
                 if (selectedPlayers.length >= 4 && selectedPlayers.length <= 6)
@@ -76,14 +82,15 @@ export default () => {
                 selectedPlayers.length < 4 || selectedPlayers.length > 6
               }
             >
-              Start First Game
+              Start First Game of the Set
             </button>
           </>
         )}
         {isSamePlayers && (
           <>
-            <h2>Start a game</h2>
-            Starting a game with card exchange since players are the same
+            <p>
+              Start a new game with card exchange since players are the same.
+            </p>
             <button
               onClick={() => {
                 if (selectedPlayers.length >= 4 && selectedPlayers.length <= 6)
