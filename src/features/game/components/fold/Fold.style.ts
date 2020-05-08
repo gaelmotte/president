@@ -35,5 +35,7 @@ export default styled.div`
     border-radius: 1vmin;
     font-size: 3vmin;
     margin: 1vmin;
+    display: inline-block;
+    margin: 0 auto;
   }
 `;

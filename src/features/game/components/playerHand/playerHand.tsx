@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
+import useIsMobile from "../../../../hooks/useIsMobile";
+
 import {
   selectPlayerHand,
   selectIsPlayerTurn,
@@ -35,6 +37,9 @@ export function PlayerHand() {
   const orders = useSelector(selectCardExchangeOrders);
   const timerDuration = useSelector(selectTimerDuration);
   const order = orders?.find((order) => order.from === playerId);
+  const isMobile = useIsMobile();
+
+  const [isViewingFold, setViewingFold] = useState<boolean>(false);
 
   const toggleCard = useCallback(
     (cardId: number) => {
@@ -89,87 +94,108 @@ export function PlayerHand() {
   const sortedHand = hand?.slice().sort(compareValues);
   if (isRevolution) sortedHand?.reverse();
 
+  console.log("isMobile", isMobile);
+
+  const handleViewFoldTouchStart = useCallback(() => setViewingFold(true), [
+    setViewingFold,
+  ]);
+  const handleViewFoldTouchEnd = useCallback(() => setViewingFold(false), [
+    setViewingFold,
+  ]);
+
   return (
-    <StyledHand>
-      {status === "starting" &&
-        order &&
-        order.cards.length === 0 &&
-        order.type === "any" && (
+    <StyledHand
+      isMobile={isMobile}
+      isPlayerTurn={isPlayerTurn}
+      isViewingFold={isViewingFold}
+    >
+      <section className="cards">
+        {status === "starting" &&
+          order &&
+          order.cards.length === 0 &&
+          order.type === "any" && (
+            <div className="actions">
+              <button
+                onClick={() => {
+                  if (order.number === selectedCards.length) {
+                    dispatch(giveCards(selectedCards));
+                    setSelectedCards([]);
+                  } else {
+                    alert("Illegal Gift");
+                  }
+                }}
+              >
+                {selectedCards.length < 2
+                  ? `Give ${selectedCards.length} Card`
+                  : `Give ${selectedCards.length} Cards`}
+              </button>
+            </div>
+          )}
+
+        {status === "running" && isPlayerTurn && !fold && (
           <div className="actions">
             <button
               onClick={() => {
-                if (order.number === selectedCards.length) {
-                  dispatch(giveCards(selectedCards));
+                if (isMoveAllowed(null, selectedCards, isRevolution)) {
+                  dispatch(startNewFold(selectedCards));
                   setSelectedCards([]);
                 } else {
-                  alert("Illegal Gift");
+                  alert("Illegal Move");
                 }
               }}
             >
-              {selectedCards.length < 2
-                ? `Give ${selectedCards.length} Card`
-                : `Give ${selectedCards.length} Cards`}
+              Start New Fold
             </button>
           </div>
         )}
-
-      {status === "running" && isPlayerTurn && !fold && (
-        <div className="actions">
-          <button
-            onClick={() => {
-              if (isMoveAllowed(null, selectedCards, isRevolution)) {
-                dispatch(startNewFold(selectedCards));
-                setSelectedCards([]);
-              } else {
-                alert("Illegal Move");
-              }
-            }}
-          >
-            Start New Fold
-          </button>
-        </div>
-      )}
-      {status === "running" && isPlayerTurn && fold && !fold.closed && (
-        <div className="actions">
-          <button
-            onClick={() => {
-              if (isMoveAllowed(fold, selectedCards, isRevolution)) {
-                dispatch(playCards(selectedCards));
-                setSelectedCards([]);
-              } else {
-                alert("Illegal Move");
-              }
-            }}
-            disabled={
-              !(
-                selectedCards.length === fold.cardsPerPlay ||
-                (selectedCards.length === 0 && isSameOrNothingPlay)
-              )
-            }
-          >
-            {fold.cardsPerPlay < 2
-              ? `Play 1 Card. ${
-                  isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
-                }`
-              : `Play ${fold.cardsPerPlay} Cards. ${
-                  isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
-                }`}
-          </button>
-          {!isSameOrNothingPlay && (
+        {status === "running" && isPlayerTurn && fold && !fold.closed && (
+          <div className="actions">
             <button
               onClick={() => {
-                dispatch(pass());
-                setSelectedCards([]);
+                if (isMoveAllowed(fold, selectedCards, isRevolution)) {
+                  dispatch(playCards(selectedCards));
+                  setSelectedCards([]);
+                } else {
+                  alert("Illegal Move");
+                }
               }}
-              disabled={selectedCards.length !== 0}
+              disabled={
+                !(
+                  selectedCards.length === fold.cardsPerPlay ||
+                  (selectedCards.length === 0 && isSameOrNothingPlay)
+                )
+              }
             >
-              Pass
+              {fold.cardsPerPlay < 2
+                ? `Play 1 Card. ${
+                    isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
+                  }`
+                : `Play ${fold.cardsPerPlay} Cards. ${
+                    isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
+                  }`}
             </button>
-          )}
-        </div>
-      )}
+            {isMobile && (
+              <button
+                onTouchStart={handleViewFoldTouchStart}
+                onTouchEnd={handleViewFoldTouchEnd}
+              >
+                View Fold
+              </button>
+            )}
+            {!isSameOrNothingPlay && (
+              <button
+                onClick={() => {
+                  dispatch(pass());
+                  setSelectedCards([]);
+                }}
+                disabled={selectedCards.length !== 0}
+              >
+                Pass
+              </button>
+            )}
+          </div>
+        )}
 
-      <section className="cards">
         {sortedHand &&
           sortedHand.map((cardId, index) => (
             <StyledSlotInHand slotIndex={index} slotNumber={sortedHand.length}>

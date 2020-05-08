@@ -1,6 +1,10 @@
 import styled from "styled-components";
 
-export default styled.div`
+export default styled.div<{
+  isMobile: boolean;
+  isPlayerTurn: boolean;
+  isViewingFold: boolean;
+}>`
   position: relative;
 
   .playerInfo {
@@ -62,6 +66,12 @@ export default styled.div`
     position: relative;
     height: 23vmin;
     filter: drop-shadow(0 0 1vmin gold);
+    opacity: ${(props) => (props.isViewingFold ? 0 : 1)};
+
+    transform: ${(props) =>
+      props.isMobile && props.isPlayerTurn
+        ? "scale(2) translate(0px, -25%)"
+        : ""};
   }
 `;
 
@@ -69,20 +79,20 @@ export const StyledSlotInHand = styled.div<{
   slotIndex: number;
   slotNumber: number;
 }>`
-  transform-origin: 25% 200%;
+  transform-origin: 0 200%;
   position: absolute;
   left: 50%;
-  margin-left: -50px;
   z-index: ${(props) => props.slotIndex};
   transform: rotate(
-    ${(props) => {
-      const anglePerCard = Math.min(100 / props.slotNumber, 15);
-      return (
-        (100 - anglePerCard * props.slotNumber) / 2 -
-        50 +
-        +anglePerCard / 2 +
-        props.slotIndex * anglePerCard
-      );
-    }}deg
-  );
+      ${(props) => {
+        const anglePerCard = Math.min(100 / props.slotNumber, 15);
+        return (
+          (100 - anglePerCard * props.slotNumber) / 2 -
+          50 +
+          +anglePerCard / 2 +
+          props.slotIndex * anglePerCard
+        );
+      }}deg
+    )
+    translate(-7.5vmin, 0);
 `;
