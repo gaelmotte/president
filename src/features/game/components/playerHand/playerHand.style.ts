@@ -7,7 +7,7 @@ export default styled.div<{
 }>`
   position: relative;
   ${(props) =>
-    props.isMobile
+    !props.isMobile
       ? `width: 100vmin;
   align-self: center;`
       : ""}
@@ -46,7 +46,6 @@ export default styled.div<{
     }
 
     button {
-      height: 3vmin;
       margin: 1vmin;
 
       background-color: black;
@@ -75,7 +74,7 @@ export default styled.div<{
 
     transform: ${(props) =>
       props.isMobile && props.isPlayerTurn
-        ? "scale(2) translate(0px, -25%)"
+        ? "scale(1.5) translate(0px, -25%)"
         : ""};
   }
 `;
