@@ -38,4 +38,16 @@ export default styled.div`
       }
     }
   }
+  button {
+    text-decoration: none;
+    background-color: black;
+    border: 0;
+    font-size: 2vmin;
+    color: white;
+    box-shadow: inset 0 0 1vmin gold;
+    border-radius: 1vmin;
+  }
+  button:disabled {
+    box-shadow: inset 0 0 1vmin red;
+  }
 `;

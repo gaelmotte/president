@@ -66,8 +66,12 @@ export default () => {
         {!isSamePlayers && (
           <>
             <p>
-              Starting a game for all the connected members for that first game.
-              (players changed or first game)
+              {" "}
+              {selectedPlayers.length < 4 || selectedPlayers.length > 6 ? (
+                <>Select 4 to 6 players to play.</>
+              ) : (
+                <>Start a new set for the selected players.</>
+              )}
             </p>
             <button
               onClick={() => {
@@ -78,13 +82,15 @@ export default () => {
                 selectedPlayers.length < 4 || selectedPlayers.length > 6
               }
             >
-              Start First Game
+              Start First Game of the Set
             </button>
           </>
         )}
         {isSamePlayers && (
           <>
-            <p>Starting a game with card exchange since players are the same</p>
+            <p>
+              Start a new game with card exchange since players are the same.
+            </p>
             <button
               onClick={() => {
                 if (selectedPlayers.length >= 4 && selectedPlayers.length <= 6)
