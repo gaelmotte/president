@@ -6,6 +6,11 @@ export default styled.div<{
   isViewingFold: boolean;
 }>`
   position: relative;
+  ${(props) =>
+    props.isMobile
+      ? `width: 100vmin;
+  align-self: center;`
+      : ""}
 
   .playerInfo {
     display: flex;
