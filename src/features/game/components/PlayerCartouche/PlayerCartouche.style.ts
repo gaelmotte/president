@@ -19,7 +19,8 @@ export default styled.div<{
       return `top:2vmin;
       left:1vmin;`;
     } else {
-      return `top:0;`;
+      return `top:0;
+      transform: translate(-50%, 0);`;
     }
   }}
 
@@ -33,22 +34,22 @@ export default styled.div<{
         `;
         case 2:
           return `
-        left:${props.playerIndex * 33 + 16}%;
+        left:${(props.playerIndex + 1) * 33}%;
         
         `;
         case 3:
           return `
-        left:${props.playerIndex * 25 + 12}%;
+        left:${(props.playerIndex + 1) * 25}%;
         
         `;
         case 4:
           return `
-        left:${props.playerIndex * 20 + 10}%;
+        left:${(props.playerIndex + 1) * 20}%;
         
         `;
         case 5:
           return `
-        left:${props.playerIndex * 17 + 5}%;
+        left:${(props.playerIndex + 1) * 17}%;
         
         `;
       }
@@ -62,6 +63,7 @@ export default styled.div<{
   .avatar {
     width: 8vmin;
     height: 8vmin;
+    top: 0;
 
     line-height: 8vmin;
 
@@ -103,9 +105,9 @@ export default styled.div<{
     border-radius: 10vmin;
 
     padding-left: 5vmin;
-    position: absolute;
+    position: relative;
     top: 0;
-    left: 3.5vmin;
+    margin-left: 3.5vmin;
     display: inline-block;
     white-space: nowrap;
   }
