@@ -45,18 +45,19 @@ export default () => {
 
   return (
     <StyledPlayersSelector>
-      <div>
+      <div className="wrap">
+        <h2>Start a game</h2>
+        <p>Choose which players should play</p>
         <ul>
           {members.map((member) => (
             <li key={member.id}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={selectedPlayers.includes(member.id)}
-                  onChange={() => handleChangeCheckbox(member.id)}
-                />
-                {playersPseudo[member.id]}
-              </label>
+              <input
+                type="checkbox"
+                checked={selectedPlayers.includes(member.id)}
+                onChange={() => handleChangeCheckbox(member.id)}
+                id={member.id}
+              />
+              <label htmlFor={member.id}>{playersPseudo[member.id]}</label>
             </li>
           ))}
         </ul>
@@ -64,9 +65,10 @@ export default () => {
       <div>
         {!isSamePlayers && (
           <>
-            <h2>Start a game</h2>
-            Starting a game for all the connected members for that first game.
-            (players changed or first game)
+            <p>
+              Starting a game for all the connected members for that first game.
+              (players changed or first game)
+            </p>
             <button
               onClick={() => {
                 if (selectedPlayers.length >= 4 && selectedPlayers.length <= 6)
@@ -82,8 +84,7 @@ export default () => {
         )}
         {isSamePlayers && (
           <>
-            <h2>Start a game</h2>
-            Starting a game with card exchange since players are the same
+            <p>Starting a game with card exchange since players are the same</p>
             <button
               onClick={() => {
                 if (selectedPlayers.length >= 4 && selectedPlayers.length <= 6)
