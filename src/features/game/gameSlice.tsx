@@ -33,6 +33,7 @@ interface GameState {
   disqualifiedPlayers: string[] | null;
   isRevolution: boolean;
   cardExchangeOrders: CardExchangeOrder[] | null;
+  timerDuration: number;
 }
 const initialState: GameState = {
   gameId: null,
@@ -45,6 +46,7 @@ const initialState: GameState = {
   disqualifiedPlayers: null,
   isRevolution: false,
   cardExchangeOrders: null,
+  timerDuration: 20000,
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
@@ -178,7 +180,7 @@ export const initializeGame = (
 
   // ask server to deal cards if Host
   if (isHost) {
-    const hands = dealCards(playerIds);
+    const hands = dealCards(playerIds, startingPlayer);
     const cardEchangeOrders = selectComputedCardExchangeOrdersFromPreviousGame(
       playerIds
     )(getState());
@@ -572,7 +574,7 @@ export const selectNextPlayer = (state: RootState) => {
 export const selectAdversaries = (state: RootState) => {
   if (!state.game.playerIds || !state.room.pusherId) return undefined;
   const playerIndex = state.game.playerIds.indexOf(state.room.pusherId);
-  if (playerIndex === -1) throw new Error("NO PLAYER");
+  if (playerIndex === -1) return state.game.playerIds;
 
   let adversaries: string[] = [];
 
@@ -628,7 +630,9 @@ export const selectIsSameOrNothingPlay = (state: RootState) => {
         .slice(-2)
         .map((move) => getFigure(move.cards[0]))
     ).size === 1 &&
-    state.game.currentFold.moves.slice(-1)[0].cards.length !== 0
+    state.game.currentFold.moves.slice(-1)[0].cards.length !== 0 &&
+    state.game.currentPlayer !==
+      state.game.currentFold.moves.slice(-1)[0].playerId
   );
 };
 
@@ -788,3 +792,6 @@ export const selectComputePreviousFinishEmoji = (playerId: string) => (
     }
   }
 };
+
+export const selectTimerDuration = (state: RootState) =>
+  state.game.timerDuration;

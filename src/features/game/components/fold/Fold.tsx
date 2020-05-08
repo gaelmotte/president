@@ -44,7 +44,7 @@ export default () => {
     <StyledFold>
       {fold && (
         <>
-          {closed && <h3>CLOSED</h3>}
+          {closed && <div className="closed">CLOSED</div>}
           <section className="moves" ref={movesSection}>
             {fold.moves
               .filter((move) => move.cards.length !== 0)
@@ -67,9 +67,6 @@ export default () => {
         <span className="glows">
           Waiting for a player to start the new fold
         </span>
-      )}
-      {!fold && isPlayerTurn && (
-        <span className="glows">Select some cards and start the new fold</span>
       )}
     </StyledFold>
   );

@@ -19,7 +19,8 @@ export default styled.div<{
       return `top:2vmin;
       left:1vmin;`;
     } else {
-      return `top:0;`;
+      return `top:0;
+      transform: translate(-50%, 0);`;
     }
   }}
 
@@ -33,30 +34,36 @@ export default styled.div<{
         `;
         case 2:
           return `
-        left:${(props.playerIndex + 1) * 33}vmin;
+        left:${(props.playerIndex + 1) * 33}%;
         
         `;
         case 3:
           return `
-        left:${(props.playerIndex + 1) * 25}vmin;
+        left:${(props.playerIndex + 1) * 25}%;
         
         `;
         case 4:
           return `
-        left:${(props.playerIndex + 1) * 20}vmin;
+        left:${(props.playerIndex + 1) * 20}%;
         
         `;
         case 5:
           return `
-        left:${(props.playerIndex + 1) * 17}vmin;
+        left:${(props.playerIndex + 1) * 17}%;
         
         `;
       }
   }}
 
+  @media (max-aspect-ratio: 3/2) {
+    top: ${(props) =>
+      props.playerIndex && !props.isSelf ? props.playerIndex * 3 : 0}vmin;
+  }
+
   .avatar {
     width: 8vmin;
     height: 8vmin;
+    top: 0;
 
     line-height: 8vmin;
 
@@ -90,7 +97,7 @@ export default styled.div<{
   }
 
   .details {
-    font-size: 2.5vmin;
+    font-size: 2vmin;
     padding-right: 2.5vmin;
 
     background-color: black;
@@ -98,9 +105,9 @@ export default styled.div<{
     border-radius: 10vmin;
 
     padding-left: 5vmin;
-    position: absolute;
+    position: relative;
     top: 0;
-    left: 3.5vmin;
+    margin-left: 3.5vmin;
     display: inline-block;
     white-space: nowrap;
   }

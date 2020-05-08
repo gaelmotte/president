@@ -12,17 +12,21 @@ export default styled.div`
     flex-shrink: 1;
     overflow-y: scroll;
   }
-  h3 {
+  .closed {
     position: absolute;
     top: 50%;
     left: 50%;
+    padding: 1vmin;
 
-    transform: translate(-50%, -50%) rotate(-45deg);
-    color: RED;
-    border: solid red 0.2vmin;
+    transform: translate(-50%, -50%);
+
     padding: 0.5vmin;
-    font-size: 6vmin;
+    font-size: 3vmin;
     z-index: 100;
+    box-shadow: inset 0 0 1vmin gold;
+    filter: drop-shadow(0 0 1vmin black);
+    background-color: black;
+    border-radius: 1vmin;
   }
 
   .glows {
@@ -31,5 +35,7 @@ export default styled.div`
     border-radius: 1vmin;
     font-size: 3vmin;
     margin: 1vmin;
+    display: inline-block;
+    margin: 0 auto;
   }
 `;

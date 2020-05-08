@@ -13,6 +13,7 @@ interface RoomState {
   pastGames: PastGame[];
   currentGame: string | null;
   currentGamePlayerIds: string[] | null;
+  playerIdentities: PlayerIdentities;
 }
 
 const initialState: RoomState = {
@@ -23,6 +24,7 @@ const initialState: RoomState = {
   pastGames: [],
   currentGame: null,
   currentGamePlayerIds: null,
+  playerIdentities: {},
 };
 
 type Member = {
@@ -32,6 +34,16 @@ type Member = {
     isHost: boolean;
     joinedAt: number;
   };
+};
+
+const avatars = ["💀", "👾", "🎃", "🤖", "👽", "😈", "🤡", "👻", "👺", "⛄️"];
+
+type PlayerIdentities = {
+  [playerId: string]: PlayerIdentity;
+};
+
+type PlayerIdentity = {
+  avatar: string;
 };
 
 type PastGame = {
@@ -68,18 +80,21 @@ export const roomSlice = createSlice({
           ? -1
           : 1
       );
+      state.members = state.members.filter(
+        (it, index, arr) =>
+          arr.findIndex((member) => it.id === member.id) === index
+      );
     },
     removeConnectedMember: (state, action: PayloadAction<Member>) => {
-      state.members.splice(
-        state.members.findIndex((member) => member.id === action.payload.id)
-      );
-      state.members.sort((a, b) =>
-        a.info.joinedAt === b.info.joinedAt
-          ? 0
-          : a.info.joinedAt < b.info.joinedAt
-          ? -1
-          : 1
-      );
+      state.members = state.members
+        .filter((member) => member.id !== action.payload.id)
+        .sort((a, b) =>
+          a.info.joinedAt === b.info.joinedAt
+            ? 0
+            : a.info.joinedAt < b.info.joinedAt
+            ? -1
+            : 1
+        );
     },
     setCurrentGame: (
       state,
@@ -94,6 +109,24 @@ export const roomSlice = createSlice({
     setPastGame: (state, action: PayloadAction<PastGame>) => {
       state.pastGames.push(action.payload);
     },
+
+    setPastGames: (state, action: PayloadAction<PastGame[]>) => {
+      state.pastGames = action.payload;
+    },
+
+    updatePlayerIdentity: (
+      state,
+      action: PayloadAction<{ playerId: string; identity: PlayerIdentity }>
+    ) => {
+      state.playerIdentities[action.payload.playerId] = action.payload.identity;
+    },
+
+    updatePlayerIdentities: (
+      state,
+      action: PayloadAction<PlayerIdentities>
+    ) => {
+      state.playerIdentities = action.payload;
+    },
   },
 });
 
@@ -105,6 +138,9 @@ export const {
   removeConnectedMember,
   setCurrentGame,
   setPastGame,
+  setPastGames,
+  updatePlayerIdentity,
+  updatePlayerIdentities,
 } = roomSlice.actions;
 
 export const connectToRoom = (roomId: string): AppThunk => (
@@ -146,10 +182,38 @@ export const connectToRoom = (roomId: string): AppThunk => (
       dispatch(addConnectedMember(member));
     });
     dispatch(setConnectedRoom(roomId));
+    if (selectIsHost(getState())) {
+      dispatch(
+        updatePlayerIdentity({
+          playerId: channel.members.me.id,
+          identity: {
+            avatar: selectAvailableAvatar(getState()),
+          },
+        })
+      );
+    }
   });
 
   channel.bind("pusher:member_added", function (member: any) {
     dispatch(addConnectedMember(member));
+    if (selectIsHost(getState())) {
+      dispatch(
+        updatePlayerIdentity({
+          playerId: member.id,
+          identity: {
+            avatar: selectAvailableAvatar(getState()),
+          },
+        })
+      );
+      channel.trigger(
+        "client-room-update-identities",
+        selectPlayerIdentities(getState())
+      );
+      channel.trigger(
+        "client-room-update-past-games",
+        selectPastGames(getState())
+      );
+    }
   });
 
   channel.bind("pusher:member_removed", function (member: any) {
@@ -162,6 +226,17 @@ export const connectToRoom = (roomId: string): AppThunk => (
       dispatch(setCurrentGame({ gameId, playerIds }));
     }
   );
+
+  channel.bind(
+    "client-room-update-identities",
+    (identities: PlayerIdentities) => {
+      dispatch(updatePlayerIdentities(identities));
+    }
+  );
+  channel.bind("client-room-update-past-games", (pastGames: PastGame[]) => {
+    console.log("called");
+    dispatch(setPastGames(pastGames));
+  });
 };
 
 export const startNewGame = (playerIds: string[]): AppThunk => (
@@ -230,6 +305,9 @@ export const selectPlayerPseudo = (playerId: string | undefined) => (
     ? state.room.members.find((member) => member.id === playerId)?.info.pseudo
     : undefined;
 
+export const selectPlayerAvatar = (playerId: string) => (state: RootState) =>
+  state.room.playerIdentities[playerId].avatar;
+
 export const selectPlayersPseudo = (state: RootState) => {
   return state.room.members.reduce<{ [playerId: string]: string }>(
     (acc: { [playerId: string]: string }, member: Member) => {
@@ -244,3 +322,91 @@ export const selectPreviousGamePlayers = (state: RootState) => {
   if (state.room.pastGames.length === 0) return null;
   return state.room.pastGames.slice(-1)[0].playerIds;
 };
+
+export const selectAvailableAvatar = (state: RootState) => {
+  const availableAvatars = avatars.filter(
+    (it) =>
+      !Object.values(state.room.playerIdentities).some((id) => id.avatar === it)
+  );
+  return availableAvatars[Math.floor(Math.random() * availableAvatars.length)];
+};
+
+export const selectPlayerIdentities = (state: RootState) => {
+  return state.room.playerIdentities;
+};
+
+type setScores = {
+  playerIds: string[];
+  points: number[][];
+  total?: number[];
+  emojis?: string[];
+};
+
+export const finishEmoji = Object.freeze({
+  2: ["🎖", "💩"],
+  3: ["🎖", "👐", "💩"],
+  4: ["🎖", "🥈", "🖕", "💩"],
+  5: ["🎖", "🥈", "👐", "🖕", "💩"],
+  6: ["🎖", "🥈", "👐", "👐", "🖕", "💩"],
+});
+
+export const selectPastGamesScores = (state: RootState) => {
+  let setScores: setScores[] = [];
+  for (let i = 0; i < state.room.pastGames.length; i++) {
+    if (
+      i === 0 ||
+      state.room.pastGames[i - 1].playerIds.length !==
+        state.room.pastGames[i].playerIds.length ||
+      state.room.pastGames[i - 1].playerIds.some(
+        (it) => !state.room.pastGames[i].playerIds.includes(it)
+      )
+    ) {
+      setScores.push({
+        playerIds: state.room.pastGames[i].playerIds,
+        points: [],
+      });
+    }
+    const currentSet: setScores = setScores.slice(-1)[0];
+    currentSet.points.push(
+      state.room.pastGames[i].playerIds.map(
+        (it) =>
+          currentSet.playerIds.length -
+          state.room.pastGames[i].finishOrder.indexOf(it) -
+          1
+      )
+    );
+  }
+
+  setScores = setScores.map((set, setIndex) => {
+    const total = set.playerIds.map((playerId, playerIndex) =>
+      set.points.reduce<number>(
+        (acc: number, row: number[]) => acc + row[playerIndex],
+        0
+      )
+    );
+    return {
+      ...set,
+      total,
+      emojis: set.playerIds.map((playerId) => {
+        if (
+          set.playerIds.length !== 2 &&
+          set.playerIds.length !== 3 &&
+          set.playerIds.length !== 4 &&
+          set.playerIds.length !== 5 &&
+          set.playerIds.length !== 6
+        )
+          return "";
+        const sortedPlayersAndTotal = set.playerIds
+          .map((pid, index) => ({ pid, total: total[index] }))
+          .sort((a, b) => b.total - a.total);
+        return finishEmoji[set.playerIds.length][
+          sortedPlayersAndTotal.findIndex((it) => it.pid === playerId)
+        ];
+      }),
+    };
+  });
+
+  return setScores;
+};
+
+export const selectPastGames = (state: RootState) => state.room.pastGames;

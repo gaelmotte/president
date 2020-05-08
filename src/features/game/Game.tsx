@@ -72,15 +72,17 @@ export function Game({
     <StyledGame>
       {missingPlayer && <h3>Manche Annulée - Joueur déconnecté</h3>}
       <section className="gameTable">
-        {adversaries &&
-          adversaries.map((playerId, index) => (
-            <PlayerCartouche
-              playerId={playerId}
-              key={playerId}
-              playerIndex={index}
-              playerNumber={adversaries.length}
-            />
-          ))}
+        <section className="adversaries">
+          {adversaries &&
+            adversaries.map((playerId, index) => (
+              <PlayerCartouche
+                playerId={playerId}
+                key={playerId}
+                playerIndex={index}
+                playerNumber={adversaries.length}
+              />
+            ))}
+        </section>
 
         {status === "starting" && <CardExchanges />}
         {status === "running" && <Fold />}

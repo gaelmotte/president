@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 
+import useIsMobile from "../../../../hooks/useIsMobile";
+
 import {
   selectPlayerHand,
   selectIsPlayerTurn,
@@ -14,6 +16,7 @@ import {
   selectIsRevolution,
   selectStatus,
   selectCardExchangeOrders,
+  selectTimerDuration,
 } from "../../gameSlice";
 import Card from "../card/Card";
 import { compareValues, isMoveAllowed } from "../../../../services/cardsUtils";
@@ -32,7 +35,11 @@ export function PlayerHand() {
   const isRevolution = useSelector(selectIsRevolution);
   const status = useSelector(selectStatus);
   const orders = useSelector(selectCardExchangeOrders);
+  const timerDuration = useSelector(selectTimerDuration);
   const order = orders?.find((order) => order.from === playerId);
+  const isMobile = useIsMobile();
+
+  const [isViewingFold, setViewingFold] = useState<boolean>(false);
 
   const toggleCard = useCallback(
     (cardId: number) => {
@@ -54,11 +61,54 @@ export function PlayerHand() {
     return () => {};
   }, [order, dispatch, hand]);
 
+  useEffect(() => {
+    if (status === "running" && isPlayerTurn && fold) {
+      if (!isSameOrNothingPlay) {
+        const timerId = setTimeout(() => {
+          dispatch(pass());
+          setSelectedCards([]);
+        }, timerDuration);
+        return () => {
+          clearTimeout(timerId);
+        };
+      } else {
+        const timerId = setTimeout(() => {
+          dispatch(playCards([]));
+          setSelectedCards([]);
+        }, timerDuration);
+        return () => {
+          clearTimeout(timerId);
+        };
+      }
+    }
+  }, [
+    status,
+    isPlayerTurn,
+    fold,
+    isSameOrNothingPlay,
+    dispatch,
+    setSelectedCards,
+    timerDuration,
+  ]);
+
   const sortedHand = hand?.slice().sort(compareValues);
   if (isRevolution) sortedHand?.reverse();
 
+  console.log("isMobile", isMobile);
+
+  const handleViewFoldTouchStart = useCallback(() => setViewingFold(true), [
+    setViewingFold,
+  ]);
+  const handleViewFoldTouchEnd = useCallback(() => setViewingFold(false), [
+    setViewingFold,
+  ]);
+
   return (
-    <StyledHand>
+    <StyledHand
+      isMobile={isMobile}
+      isPlayerTurn={isPlayerTurn}
+      isViewingFold={isViewingFold}
+    >
       {status === "starting" &&
         order &&
         order.cards.length === 0 &&
@@ -108,35 +158,52 @@ export function PlayerHand() {
                 alert("Illegal Move");
               }
             }}
+            disabled={
+              !(
+                selectedCards.length === fold.cardsPerPlay ||
+                (selectedCards.length === 0 && isSameOrNothingPlay)
+              )
+            }
           >
-            {selectedCards.length < 2
-              ? `Play ${selectedCards.length} Card. ${
+            {fold.cardsPerPlay < 2
+              ? `Play 1 Card. ${
                   isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
                 }`
-              : `Play ${selectedCards.length} Cards. ${
+              : `Play ${fold.cardsPerPlay} Cards. ${
                   isSameOrNothingPlay ? "(Same Figure or Nothing !)" : ""
                 }`}
           </button>
+          {isMobile && (
+            <button
+              onTouchStart={handleViewFoldTouchStart}
+              onTouchEnd={handleViewFoldTouchEnd}
+            >
+              View Fold
+            </button>
+          )}
           {!isSameOrNothingPlay && (
             <button
               onClick={() => {
                 dispatch(pass());
                 setSelectedCards([]);
               }}
+              disabled={selectedCards.length !== 0}
             >
               Pass
             </button>
           )}
         </div>
       )}
-
       <section className="cards">
         {sortedHand &&
           sortedHand.map((cardId, index) => (
-            <StyledSlotInHand slotIndex={index} slotNumber={sortedHand.length}>
+            <StyledSlotInHand
+              slotIndex={index}
+              slotNumber={sortedHand.length}
+              key={cardId}
+            >
               <Card
                 cardIndex={cardId}
-                key={cardId}
                 selected={selectedCards.includes(cardId)}
                 handleClick={toggleCard}
               ></Card>
