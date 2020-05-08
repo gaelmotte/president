@@ -68,9 +68,6 @@ export default () => {
           Waiting for a player to start the new fold
         </span>
       )}
-      {!fold && isPlayerTurn && (
-        <span className="glows">Select some cards and start the new fold</span>
-      )}
     </StyledFold>
   );
 };
