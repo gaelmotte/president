@@ -44,7 +44,7 @@ export default () => {
     <StyledFold>
       {fold && (
         <>
-          {closed && <h3>CLOSED</h3>}
+          {closed && <div className="closed">CLOSED</div>}
           <section className="moves" ref={movesSection}>
             {fold.moves
               .filter((move) => move.cards.length !== 0)
