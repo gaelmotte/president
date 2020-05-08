@@ -46,7 +46,7 @@ const initialState: GameState = {
   disqualifiedPlayers: null,
   isRevolution: false,
   cardExchangeOrders: null,
-  timerDuration: 20000000,
+  timerDuration: 20000,
 };
 
 let getChannel: () => PusherTypes.PresenceChannel | null = () => null;
