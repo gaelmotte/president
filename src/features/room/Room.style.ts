@@ -21,13 +21,15 @@ export default styled.div<{ valid: boolean }>`
       text-decoration: none;
       background-color: black;
       border: 0;
-      font-size: 2vmin;
+
       color: white;
+      font-size: 7vmin;
     }
 
     input[type="submit"] {
       box-shadow: inset 0 0 1vmin ${(props) => (props.valid ? "gold" : "red")};
       border-radius: 1vmin;
+      font-size: 7vmin;
     }
   }
 `;

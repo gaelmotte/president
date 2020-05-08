@@ -55,3 +55,10 @@ input, textarea /*.contenteditable?*/ {
   -ms-user-select: text;
   user-select: text;
 }
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+  outline: none;
+}
