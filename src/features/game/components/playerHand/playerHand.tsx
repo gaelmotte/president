@@ -198,10 +198,13 @@ export function PlayerHand() {
 
         {sortedHand &&
           sortedHand.map((cardId, index) => (
-            <StyledSlotInHand slotIndex={index} slotNumber={sortedHand.length}>
+            <StyledSlotInHand
+              slotIndex={index}
+              slotNumber={sortedHand.length}
+              key={cardId}
+            >
               <Card
                 cardIndex={cardId}
-                key={cardId}
                 selected={selectedCards.includes(cardId)}
                 handleClick={toggleCard}
               ></Card>
