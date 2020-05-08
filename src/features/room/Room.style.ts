@@ -23,6 +23,7 @@ export default styled.div<{ valid: boolean }>`
       border: 0;
 
       color: white;
+      font-size: 7vmin;
     }
 
     input[type="submit"] {
