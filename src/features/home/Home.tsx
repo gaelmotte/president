@@ -8,8 +8,11 @@ import StyledHome from "./Home.style";
 export function Home() {
   return (
     <StyledHome>
-      HOME
-      <Link to={"/" + uuidv4()}>GO</Link>
+      <div className="content">
+        <Link to={"/" + uuidv4()}>
+          <button type="button">Create a new Room</button>
+        </Link>
+      </div>
     </StyledHome>
   );
 }
