@@ -20,33 +20,49 @@ export default styled.div<{
 
   .actions {
     display: flex;
-    flex-direction: row;
     justify-content: center;
     align-items: center;
-
-    position: absolute;
-    top: -10vmin;
-    left: 50%;
-    transform: translate(-50%, 0);
-
-    background-color: black;
+    z-index: 9999;
     filter: drop-shadow(0 0 1vmin gold);
     border-radius: 1vmin;
-    font-size: 3vmin;
 
-    &::after {
-      content: " ";
-      position: absolute;
-      background-color: black;
-      width: 2vmin;
-      height: 2vmin;
-      transform: rotate(45deg);
-      bottom: -12%;
-      z-index: -1;
-    }
+    ${(props) => {
+      if (!props.isMobile) {
+        return `
+          font-size: 3vmin;
+          flex-direction: row;
+          position: absolute;
+          top: -10vmin;
+          left: 50%;
+          transform: translate(-50%, 0);
+          &::after {
+            content: " ";
+            position: absolute;
+            background-color: black;
+            width: 2vmin;
+            height: 2vmin;
+            transform: rotate(45deg);
+            bottom: -12%;
+            z-index: -1;
+          }`;
+      } else {
+        return ` 
+          font-size: 4vmin;
+          top: 50vmin;
+          position:fixed;
+          right:3vmin;
+          transform: translate(0,-50%);
+          flex-direction: column;
+
+  
+         `;
+      }
+    }}
+
+    background-color: black;
 
     button {
-      margin: 1vmin;
+      margin: ${(props) => (props.isMobile ? "5vmin" : "1vmin")};
 
       background-color: black;
       border: none;
@@ -74,7 +90,7 @@ export default styled.div<{
 
     transform: ${(props) =>
       props.isMobile && props.isPlayerTurn
-        ? "scale(1.5) translate(0px, -25%)"
+        ? "scale(2) translate(0px, -25%)"
         : ""};
   }
 `;
