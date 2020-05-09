@@ -23,7 +23,7 @@ export default styled.div`
     padding: 0.5vmin;
     font-size: 3vmin;
     z-index: 100;
-    box-shadow: inset 0 0 1vmin gold;
+    box-shadow: inset 0 0 1vmin goldenrod;
     filter: drop-shadow(0 0 1vmin black);
     background-color: black;
     border-radius: 1vmin;
@@ -31,7 +31,7 @@ export default styled.div`
 
   .glows {
     background-color: black;
-    filter: drop-shadow(0 0 1vmin gold);
+    filter: drop-shadow(0 0 1vmin goldenrod);
     border-radius: 1vmin;
     font-size: 3vmin;
     margin: 1vmin;

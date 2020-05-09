@@ -23,7 +23,7 @@ export default styled.div<{
     justify-content: center;
     align-items: center;
     z-index: 9999;
-    filter: drop-shadow(0 0 1vmin gold);
+    filter: drop-shadow(0 0 1vmin goldenrod);
     border-radius: 1vmin;
 
     ${(props) => {
@@ -72,7 +72,7 @@ export default styled.div<{
 
       text-decoration: none;
 
-      box-shadow: inset 0.15vmin 0.15vmin 1vmin gold;
+      box-shadow: inset 0.15vmin 0.15vmin 1vmin goldenrod;
       border-radius: 0.5vmin;
 
       cursor: pointer;
@@ -85,7 +85,7 @@ export default styled.div<{
   .cards {
     position: relative;
     height: 23vmin;
-    filter: drop-shadow(0 0 1vmin gold);
+    filter: drop-shadow(0 0 1vmin goldenrod);
     opacity: ${(props) => (props.isViewingFold ? 0 : 1)};
 
     transform: ${(props) =>

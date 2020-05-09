@@ -4,7 +4,7 @@ export default styled.div`
   overflow: hidden;
   max-height: 3vmin;
 
-  filter: drop-shadow(0 0 1vmin gold);
+  filter: drop-shadow(0 0 1vmin goldenrod);
 
   :last-of-type {
     overflow: visible;

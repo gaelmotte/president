@@ -13,7 +13,7 @@ export default styled.div`
     margin: 0 auto;
 
     background-color: black;
-    filter: drop-shadow(0 0 1vmin gold);
+    filter: drop-shadow(0 0 1vmin goldenrod);
     border-radius: 1vmin;
 
     button {
@@ -27,7 +27,7 @@ export default styled.div`
 
       text-decoration: none;
 
-      box-shadow: inset 0.15vmin 0.15vmin 1vmin gold;
+      box-shadow: inset 0.15vmin 0.15vmin 1vmin goldenrod;
       border-radius: 0.5vmin;
       font-size: 3vmin;
 

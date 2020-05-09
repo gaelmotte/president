@@ -8,7 +8,7 @@ export default styled.div`
 
   table {
     background-color: black;
-    filter: drop-shadow(0 0 1vmin gold);
+    filter: drop-shadow(0 0 1vmin goldenrod);
     margin-bottom: 2vmin;
     border-radius: 1vmin;
     font-size: 1.5vmin;

@@ -10,7 +10,9 @@ export default styled.div<{ valid: boolean }>`
   header {
     margin-bottom: 1rem;
     background-color: black;
-    filter: drop-shadow(0 0 1vmin ${(props) => (props.valid ? "gold" : "red")});
+    filter: drop-shadow(
+      0 0 1vmin ${(props) => (props.valid ? "goldenrod" : "red")}
+    );
     border-radius: 2vmin;
     padding: 1vmin;
     display: inline-block;
@@ -27,7 +29,8 @@ export default styled.div<{ valid: boolean }>`
     }
 
     input[type="submit"] {
-      box-shadow: inset 0 0 1vmin ${(props) => (props.valid ? "gold" : "red")};
+      box-shadow: inset 0 0 1vmin
+        ${(props) => (props.valid ? "goldenrod" : "red")};
       border-radius: 1vmin;
       font-size: 5vmin;
     }
