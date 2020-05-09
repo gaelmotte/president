@@ -38,15 +38,21 @@ export default styled.div`
   &.♥️::before,
   &.♦️::after,
   &.♦️::before {
-    color: gold;
     filter: drop-shadow(0 0 1vmin black);
+    background: gold;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
   &.♣️::after,
   &.♣️::before,
   &.♠️::after,
   &.♠️::before {
-    color: black;
     filter: drop-shadow(0 0 1vmin gold);
+    background: black;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
   &::before {
