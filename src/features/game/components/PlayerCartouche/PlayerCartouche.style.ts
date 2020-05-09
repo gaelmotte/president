@@ -12,7 +12,7 @@ export default styled.div<{
     color: red;
   }
 
-  filter: drop-shadow(0 0 1vmin gold);
+  filter: drop-shadow(0 0 1vmin goldenrod);
 
   ${(props) => {
     if (props.isSelf) {
@@ -93,7 +93,7 @@ export default styled.div<{
     width: 3vmin;
     height: 3vmin;
     line-height: 3vmin;
-    box-shadow: inset 0 0 0.5vmin gold;
+    box-shadow: inset 0 0 0.5vmin goldenrod;
   }
 
   .details {

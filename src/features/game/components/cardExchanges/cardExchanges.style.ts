@@ -25,7 +25,7 @@ export default styled.div`
 
   .glows {
     background-color: black;
-    filter: drop-shadow(0 0 1vmin gold);
+    filter: drop-shadow(0 0 1vmin goldenrod);
     border-radius: 1vmin;
     font-size: 3vmin;
     margin: 1vmin;
