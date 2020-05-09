@@ -1,10 +1,10 @@
 import styled from "styled-components";
 
-export default styled.div`
+export default styled.div<{ cardColor1: string; cardColor2: string }>`
   width: 15vmin;
   width: 15vmin;
   height: 23vmin;
-  background-color: black;
+  background-color: ${(props) => props.cardColor2};
   border-radius: 1vmin;
   text-align: left;
 
@@ -24,22 +24,32 @@ export default styled.div`
 
   &.♥️,
   &.♦️ {
-    background-image: linear-gradient(-45deg, black, gold, black);
-    background-color: black;
+    background-image: linear-gradient(
+      -45deg,
+      ${(props) => props.cardColor2},
+      ${(props) => props.cardColor1},
+      ${(props) => props.cardColor2}
+    );
+    background-color: ${(props) => props.cardColor2};
   }
 
   &.♣️,
   &.♠️ {
-    background-image: linear-gradient(-45deg, gold, black, gold);
-    background-color: black;
+    background-image: linear-gradient(
+      -45deg,
+      ${(props) => props.cardColor1},
+      ${(props) => props.cardColor2},
+      ${(props) => props.cardColor1}
+    );
+    background-color: ${(props) => props.cardColor2};
   }
 
   &.♥️::after,
   &.♥️::before,
   &.♦️::after,
   &.♦️::before {
-    filter: drop-shadow(0 0 1vmin black);
-    background: gold;
+    filter: drop-shadow(0 0 1vmin ${(props) => props.cardColor2});
+    background: ${(props) => props.cardColor1};
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -48,8 +58,8 @@ export default styled.div`
   &.♣️::before,
   &.♠️::after,
   &.♠️::before {
-    filter: drop-shadow(0 0 1vmin gold);
-    background: black;
+    filter: drop-shadow(0 0 1vmin ${(props) => props.cardColor1});
+    background: ${(props) => props.cardColor2};
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -63,7 +73,5 @@ export default styled.div`
   &::after {
     content: attr(data-figure) attr(data-color);
     font-size: 15vmin;
-    color: white;
-    filter: drop-shadow(0 0 1vmin white);
   }
 `;

@@ -5,7 +5,7 @@ export default styled.div`
   margin: 0 auto;
 
   background-color: black;
-  filter: drop-shadow(0 0 1vmin gold);
+  filter: drop-shadow(0 0 1vmin goldenrod);
   border-radius: 2vmin;
   padding: 1vmin;
 
@@ -44,7 +44,7 @@ export default styled.div`
     border: 0;
     font-size: 2vmin;
     color: white;
-    box-shadow: inset 0 0 1vmin gold;
+    box-shadow: inset 0 0 1vmin goldenrod;
     border-radius: 1vmin;
   }
   button:disabled {
